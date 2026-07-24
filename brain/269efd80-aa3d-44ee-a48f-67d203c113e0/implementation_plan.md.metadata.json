@@ -1,0 +1,6 @@
+{
+  "artifactType":  "ARTIFACT_TYPE_IMPLEMENTATION_PLAN",
+  "summary":  "Plan de implementación para agregar la sección de Ventas a MiAlqui. Detalla el selector de tipo de publicación (Alquiler/Venta), la adaptación del formulario de admin, la actualización del mockData, el ajuste dinámico de precios y el plan de verificación.",
+  "updatedAt":  "2026-06-19T18:55:35.117234700Z",
+  "requestFeedback":  true
+}

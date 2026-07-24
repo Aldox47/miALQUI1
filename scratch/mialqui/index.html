@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MiAlqui | Alquileres en Coronel Oviedo</title>
+  
+  <!-- SEO Meta Tags -->
+  <meta name="description" content="Encuentra los mejores alquileres temporarios en Coronel Oviedo. Cabañas, departamentos, quintas y más. Reserva directa por WhatsApp.">
+  <meta name="keywords" content="alquiler, coronel oviedo, paraguay, cabañas, departamentos, mialqui, hospedaje">
+  <meta name="author" content="MiAlqui Admin">
+  
+  <!-- Google Fonts (Outfit & Inter) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Leaflet Map CSS & JS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  
+  <!-- Lucide Icons JS -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Supabase JS Client SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- Main Custom CSS -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- App Header -->
+  <header class="main-header">
+    <div class="header-container">
+      <!-- Logo -->
+      <div class="logo-area" id="btn-logo">
+        <span class="logo-text">Mi<span><i data-lucide="home" class="logo-house-letter"></i>lqui</span></span>
+      </div>
+
+      <!-- Type Switcher (Alquileres / Ventas) -->
+      <div class="type-switcher" id="header-type-switcher">
+        <button class="type-btn active" data-type="alquiler">Alquileres</button>
+        <button class="type-btn" data-type="venta">Ventas</button>
+      </div>
+
+      <!-- Search & Filters -->
+      <div class="search-bar-wrapper">
+        <div class="search-bar" id="search-bar-trigger">
+          <button class="search-input-btn">
+            <span class="search-title">¿Dónde en Oviedo?</span>
+            <span class="search-desc">Buscar por barrio...</span>
+          </button>
+          <div class="search-divider"></div>
+          <button class="search-input-btn">
+            <span class="search-title">Precio máximo</span>
+            <span class="search-desc" id="price-filter-label">Cualquiera</span>
+          </button>
+          <div class="search-button">
+            <i data-lucide="search"></i>
+          </div>
+        </div>
+
+        <!-- Hidden Search Dropdown -->
+        <div class="search-dropdown hidden" id="search-dropdown">
+          <div class="search-dropdown-section">
+            <h3>Buscar por Barrio</h3>
+            <div class="search-input-container">
+              <i data-lucide="map-pin"></i>
+              <input type="text" id="search-input-text" placeholder="Ej. Centro, UNVES, Rotonda...">
+            </div>
+          </div>
+          <div class="search-dropdown-section">
+            <h3>Precio Máximo Mensual</h3>
+            <div class="price-slider-container">
+              <span id="price-slider-min">0 Gs.</span>
+              <input type="range" id="search-price-range" min="0" max="5000000" step="100000" value="5000000">
+              <span id="price-slider-max">5.000.000 Gs.</span>
+            </div>
+            <div class="price-slider-value">
+              Filtrar por: <strong id="price-slider-current">Cualquiera</strong>
+            </div>
+          </div>
+          <div class="search-dropdown-actions">
+            <button class="btn-clear-filters" id="btn-clear-search">Limpiar</button>
+            <button class="btn-apply-filters" id="btn-apply-search">Buscar</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- User Menu & Theme -->
+      <div class="header-right">
+        <button class="theme-toggle-btn" id="btn-theme-toggle" title="Cambiar Tema">
+          <i data-lucide="moon" class="dark-icon"></i>
+          <i data-lucide="sun" class="light-icon hidden"></i>
+        </button>
+        
+        <div class="user-menu-wrapper">
+          <button class="user-menu-btn" id="btn-user-menu">
+            <i data-lucide="menu"></i>
+            <div class="user-avatar">
+              <i data-lucide="user"></i>
+            </div>
+          </button>
+          
+          <div class="user-dropdown hidden" id="user-dropdown">
+            <div class="user-dropdown-group" id="guest-menu-group">
+              <button class="dropdown-item font-semibold" id="btn-open-login">Panel de Administrador</button>
+              <button class="dropdown-item" id="btn-about">Acerca de MiAlqui</button>
+            </div>
+            <div class="user-dropdown-group hidden" id="admin-menu-group">
+              <div class="admin-badge">Admin Conectado</div>
+              <button class="dropdown-item font-semibold" id="btn-goto-admin">Gestionar Alquileres</button>
+              <button class="dropdown-item" id="btn-goto-explore">Volver a Explorar</button>
+              <div class="dropdown-divider"></div>
+              <button class="dropdown-item text-danger" id="btn-logout">Cerrar Sesión</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Categories Scrollbar -->
+  <section class="categories-bar" id="categories-bar">
+    <div class="categories-container" id="categories-container">
+      <!-- Generated dynamically in app.js -->
+    </div>
+  </section>
+
+  <!-- Main Content Layout (Split Screen) -->
+  <main class="main-layout" id="main-layout">
+    
+    <!-- Left Column: Property List -->
+    <section class="listings-section" id="listings-section">
+      <div class="listings-header">
+        <h2 id="listings-title"><span id="listings-count">5</span> alquileres en Coronel Oviedo</h2>
+        <div class="listings-active-filters" id="active-filters-tags">
+          <!-- Filters tags dynamic -->
+        </div>
+      </div>
+      <div class="listings-grid" id="listings-grid">
+        <!-- Rendered dynamically in app.js -->
+      </div>
+    </section>
+
+    <!-- Right Column: Interactive Map -->
+    <section class="map-section" id="map-section">
+      <div id="map"></div>
+    </section>
+
+    <!-- Admin Panel Interface (Hidden by default) -->
+    <section class="admin-section hidden" id="admin-section">
+      <div class="admin-dashboard">
+        <div class="admin-sidebar">
+          <div class="admin-profile">
+            <div class="admin-avatar">
+              <i data-lucide="shield-check"></i>
+            </div>
+            <div class="admin-info">
+              <h3>Administrador</h3>
+              <p>admin@mialqui.com</p>
+            </div>
+          </div>
+          <nav class="admin-nav">
+            <button class="admin-nav-item active" id="admin-nav-list">
+              <i data-lucide="list"></i> Mis Publicaciones
+            </button>
+            <button class="admin-nav-item" id="admin-nav-new">
+              <i data-lucide="plus-circle"></i> Nueva Publicación
+            </button>
+          </nav>
+        </div>
+
+        <div class="admin-content">
+          <!-- Section: Listings Management -->
+          <div class="admin-panel-view" id="admin-view-list">
+            <div class="admin-content-header">
+              <h2>Gestionar Mis Publicaciones</h2>
+              <button class="btn-primary" id="btn-admin-add-shortcut">
+                <i data-lucide="plus"></i> Crear Nuevo Alquiler
+              </button>
+            </div>
+            <div class="table-responsive">
+              <table class="admin-table">
+                <thead>
+                  <tr>
+                    <th>Imagen</th>
+                    <th>Propiedad</th>
+                    <th>Categoría</th>
+                    <th>Precio</th>
+                    <th>Ubicación</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="admin-properties-table-body">
+                  <!-- Generated dynamically in app.js -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Section: Create / Edit Form -->
+          <div class="admin-panel-view hidden" id="admin-view-form">
+            <div class="admin-content-header">
+              <h2 id="form-title">Crear Nuevo Alquiler</h2>
+              <button class="btn-secondary-outline" id="btn-cancel-form">Cancelar</button>
+            </div>
+            
+            <form class="admin-form" id="property-form">
+              <input type="hidden" id="form-property-id">
+              
+              <div class="form-grid">
+                <!-- Left form fields -->
+                <div class="form-column">
+                  <div class="form-group">
+                    <label for="form-title-input">Título de la Propiedad</label>
+                    <input type="text" id="form-title-input" required placeholder="Ej. Cabaña Rústica con Hermosa Piscina">
+                  </div>
+                  
+                  <div class="form-row-2">
+                    <div class="form-group">
+                      <label for="form-type-input">Tipo de Publicación</label>
+                      <select id="form-type-input" required>
+                        <option value="alquiler">Alquiler</option>
+                        <option value="venta">Venta</option>
+                      </select>
+                    </div>
+                    <div class="form-group">
+                      <label for="form-category-input">Categoría</label>
+                      <select id="form-category-input" required>
+                        <option value="Casas">Casas</option>
+                        <option value="Habitaciones">Habitaciones</option>
+                        <option value="Departamentos">Departamentos</option>
+                      </select>
+                    </div>
+                  </div>
+                  
+                  <div class="form-group">
+                    <label for="form-price-input" id="form-price-label">Precio (Gs.)</label>
+                    <input type="number" id="form-price-input" required min="1000" placeholder="Ej. 250000">
+                  </div>
+
+                  <div class="form-group">
+                    <label for="form-location-input">Ubicación / Dirección en Coronel Oviedo</label>
+                    <input type="text" id="form-location-input" required placeholder="Ej. Barrio Espínola, a 2 cuadras de la Avda. Principal">
+                  </div>
+
+                  <div class="form-group">
+                    <label for="form-phone-input">WhatsApp de Contacto (Propietario / Admin)</label>
+                    <input type="tel" id="form-phone-input" required placeholder="Ej. 595981234567" pattern="[0-9]+">
+                    <p class="form-help-text">Ingresa el número con el código de país (595 para Paraguay), sin espacios, guiones ni el símbolo "+".</p>
+                  </div>
+
+                  <div class="form-group">
+                    <label>Selecciona las Fotos (URLs de imágenes)</label>
+                    <div class="form-image-inputs" id="image-inputs-container">
+                      <input type="url" class="form-image-url" placeholder="URL de la Foto 1 (Requerida)" required>
+                      <input type="url" class="form-image-url" placeholder="URL de la Foto 2 (Opcional)">
+                      <input type="url" class="form-image-url" placeholder="URL de la Foto 3 (Opcional)">
+                    </div>
+                    <p class="form-help-text">Ingresa enlaces de imágenes públicas (puedes usar Unsplash u otras webs).</p>
+                  </div>
+                </div>
+
+                <!-- Right form fields & location pin -->
+                <div class="form-column">
+                  <div class="form-group">
+                    <label for="form-desc-input">Descripción de la Propiedad</label>
+                    <textarea id="form-desc-input" rows="4" required placeholder="Describe las comodidades, capacidad, etc."></textarea>
+                  </div>
+
+                  <div class="form-group">
+                    <label>Servicios Incluidos</label>
+                    <div class="amenities-checkboxes" id="amenities-checkboxes-container">
+                      <!-- Dynamically populated or static -->
+                      <label class="checkbox-label"><input type="checkbox" value="Wifi"> Wifi</label>
+                      <label class="checkbox-label"><input type="checkbox" value="Aire Acondicionado"> Aire Acondicionado</label>
+                      <label class="checkbox-label"><input type="checkbox" value="Piscina"> Piscina</label>
+                      <label class="checkbox-label"><input type="checkbox" value="Parrilla / Quincho"> Parrilla / Quincho</label>
+                      <label class="checkbox-label"><input type="checkbox" value="Cochera"> Cochera</label>
+                      <label class="checkbox-label"><input type="checkbox" value="Smart TV"> Smart TV</label>
+                      <label class="checkbox-label"><input type="checkbox" value="Cocina Equipada"> Cocina Equipada</label>
+                      <label class="checkbox-label"><input type="checkbox" value="Lavadora"> Lavadora</label>
+                    </div>
+                  </div>
+
+                  <div class="form-group">
+                    <label>Ubicación exacta en el Mapa</label>
+                    <p class="form-help-text text-accent">Haz clic en el mapa de abajo para fijar el marcador de coordenadas exactas.</p>
+                    <div id="form-map-picker"></div>
+                    <div class="form-row-2 margin-top-sm">
+                      <div class="form-group">
+                        <label for="form-lat-input">Latitud</label>
+                        <input type="number" step="any" id="form-lat-input" required readonly placeholder="-25.445">
+                      </div>
+                      <div class="form-group">
+                        <label for="form-lng-input">Longitud</label>
+                        <input type="number" step="any" id="form-lng-input" required readonly placeholder="-56.444">
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-actions">
+                <button type="button" class="btn-secondary" id="btn-cancel-form-2">Cancelar</button>
+                <button type="submit" class="btn-primary" id="btn-submit-property">Guardar Alquiler</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Floating View Toggle (Map/List) -->
+  <button class="floating-view-toggle" id="btn-floating-toggle">
+    <i data-lucide="map"></i>
+    <span>Ver Mapa</span>
+  </button>
+
+  <!-- Modal: Detail View -->
+  <div class="modal-overlay hidden" id="detail-modal">
+    <div class="modal-container detail-modal-container">
+      <button class="modal-close-btn" id="btn-close-detail" aria-label="Cerrar">
+        <i data-lucide="x"></i>
+      </button>
+      
+      <div class="modal-content detail-modal-content">
+        <!-- Photo Gallery Slider -->
+        <div class="detail-gallery-slider">
+          <div class="detail-slides-wrapper" id="detail-slides-wrapper">
+            <!-- Images will be inserted here -->
+          </div>
+          <button class="slider-arrow arrow-left" id="btn-slide-left">
+            <i data-lucide="chevron-left"></i>
+          </button>
+          <button class="slider-arrow arrow-right" id="btn-slide-right">
+            <i data-lucide="chevron-right"></i>
+          </button>
+          <div class="slider-dots" id="detail-slider-dots"></div>
+        </div>
+
+        <!-- Detail Layout -->
+        <div class="detail-layout">
+          <div class="detail-info-side">
+            <div class="detail-header-block">
+              <span class="detail-category-badge" id="detail-category">Cabaña</span>
+              <h1 id="detail-title">Propiedad</h1>
+              <div class="detail-location">
+                <i data-lucide="map-pin"></i>
+                <span id="detail-location-text">Coronel Oviedo</span>
+              </div>
+
+            </div>
+
+            <div class="detail-section">
+              <h3>Descripción</h3>
+              <p id="detail-description-text"></p>
+            </div>
+
+            <div class="detail-section">
+              <h3>¿Qué ofrece este lugar?</h3>
+              <ul class="detail-amenities-list" id="detail-amenities-list">
+                <!-- Amenities dynamic list -->
+              </ul>
+            </div>
+          </div>
+
+          <div class="detail-booking-side">
+            <div class="booking-card">
+              <div class="booking-price-row">
+                <span class="booking-price"><strong id="booking-price-value">0 Gs.</strong> / mes</span>
+              </div>
+              
+              <div class="booking-form-box">
+                <p class="booking-direct-hint">Ponte en contacto directo con el administrador para coordinar fechas de estadía, pago y entrega de llaves.</p>
+                <div class="booking-info-row">
+                  <i data-lucide="info"></i>
+                  <span>Al hacer clic en el botón de abajo, se te redirigirá a WhatsApp con los datos de esta propiedad.</span>
+                </div>
+              </div>
+
+              <a href="#" target="_blank" class="btn-booking-whatsapp" id="btn-whatsapp-booking">
+                <i data-lucide="message-circle"></i> Contactar al Administrador
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Login View -->
+  <div class="modal-overlay hidden" id="login-modal">
+    <div class="modal-container login-modal-container">
+      <button class="modal-close-btn" id="btn-close-login" aria-label="Cerrar">
+        <i data-lucide="x"></i>
+      </button>
+      <div class="modal-content login-modal-content">
+        <div class="login-header">
+          <div class="login-logo-icon">
+            <i data-lucide="shield-check"></i>
+          </div>
+          <h2>Iniciar Sesión de Administrador</h2>
+          <p>Solo el administrador puede agregar y modificar las propiedades de MiAlqui.</p>
+        </div>
+        <form class="login-form" id="login-form">
+          <div class="form-group">
+            <label for="login-email">Correo Electrónico</label>
+            <input type="email" id="login-email" required placeholder="admin@mialqui.com" class="form-control">
+          </div>
+          <div class="form-group">
+            <label for="login-password">Contraseña</label>
+            <input type="password" id="login-password" required placeholder="••••••••" class="form-control">
+          </div>
+          <div class="error-message hidden" id="login-error-msg">
+            Correo o contraseña incorrectos. Revisa las credenciales de administrador fijas.
+          </div>
+          <button type="submit" class="btn-primary btn-block">Ingresar</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: About View -->
+  <div class="modal-overlay hidden" id="about-modal">
+    <div class="modal-container login-modal-container">
+      <button class="modal-close-btn" id="btn-close-about" aria-label="Cerrar">
+        <i data-lucide="x"></i>
+      </button>
+      <div class="modal-content login-modal-content">
+        <div class="login-header">
+          <div class="login-logo-icon" style="background-color: var(--primary-light); color: var(--primary);">
+            <i data-lucide="info"></i>
+          </div>
+          <h2>Acerca de MiAlqui</h2>
+        </div>
+        <div class="about-content-text text-center">
+          <p><strong>MiAlqui</strong> es el portal local definitivo de alquileres temporales para la ciudad de <strong>Coronel Oviedo, Paraguay</strong>.</p>
+          <p>Diseñado para simplificar el proceso de búsqueda: encuentra una propiedad en el mapa interactivo y comunícate directamente con el administrador por WhatsApp con un solo clic, sin comisiones ni intermediarios.</p>
+          <p class="text-muted margin-top-md">Versión 1.0.0 | Creado en 2026</p>
+        </div>
+        <button class="btn-secondary btn-block margin-top-md" id="btn-close-about-ok">Entendido</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Include MockData -->
+  <script src="mockData.js"></script>
+  
+  <!-- Include Main Application Code -->
+  <script src="app.js"></script>
+</body>
+</html>

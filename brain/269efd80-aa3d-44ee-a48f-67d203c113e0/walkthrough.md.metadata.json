@@ -1,0 +1,6 @@
+{
+  "artifactType":  "ARTIFACT_TYPE_WALKTHROUGH",
+  "summary":  "Update walkthrough.md to document the newly implemented Ventas & Alquileres classification sections, including design decisions, changes, and verification instructions.",
+  "updatedAt":  "2026-07-07T15:27:52.238992800Z",
+  "userFacing":  true
+}
