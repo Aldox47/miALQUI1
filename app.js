@@ -416,15 +416,8 @@ function updateMapMarkers(filteredProps) {
   }
 }
 
-// Render Properties in the Listing Grid
-function renderProperties() {
-  const grid = document.getElementById("listings-grid");
-  const countSpan = document.getElementById("listings-count");
-  const activeFiltersContainer = document.getElementById("active-filters-tags");
-  grid.innerHTML = "";
-
-  // Apply filters
-  let filtered = properties.filter(prop => {
+function getFilteredProperties() {
+  return properties.filter(prop => {
     // Section type filter
     const matchesType = prop.type === currentType;
 
@@ -449,6 +442,17 @@ function renderProperties() {
 
     return matchesType && matchesCat && matchesSearch && matchesPrice;
   });
+}
+
+// Render Properties in the Listing Grid
+function renderProperties() {
+  const grid = document.getElementById("listings-grid");
+  const countSpan = document.getElementById("listings-count");
+  const activeFiltersContainer = document.getElementById("active-filters-tags");
+  grid.innerHTML = "";
+
+  // Apply filters
+  let filtered = getFilteredProperties();
 
   // Update counter
   countSpan.textContent = filtered.length;
@@ -1252,9 +1256,29 @@ function switchMobileView(view) {
   } else if (view === "map") {
     mainLayout.classList.add("show-map-view");
     toggleBtn.innerHTML = `<i data-lucide="list"></i><span>Ver Lista</span>`;
+
+    // Leaflet tiles break when the container was hidden during init.
+    // We must call invalidateSize() so it recalculates, then re-center.
     setTimeout(() => {
-      if (mainMap) mainMap.invalidateSize();
-    }, 100);
+      if (!mainMap) return;
+
+      // Step 1: force tile recalculation
+      mainMap.invalidateSize({ animate: false });
+
+      // Step 2: re-center on Coronel Oviedo (or fit visible markers)
+      const filtered = getFilteredProperties();
+      const markerCoords = filtered
+        .filter(p => p.lat && p.lng)
+        .map(p => [p.lat, p.lng]);
+
+      if (markerCoords.length > 0 && filtered.length < properties.length) {
+        // If there's an active filter, fit to those markers
+        mainMap.fitBounds(markerCoords, { padding: [40, 40], animate: false });
+      } else {
+        // Default: center on Coronel Oviedo
+        mainMap.setView([-25.4450, -56.4440], 13.5, { animate: false });
+      }
+    }, 150);
   }
   lucide.createIcons();
 }
