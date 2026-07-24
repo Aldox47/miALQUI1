@@ -760,12 +760,13 @@ ul {
 /* Listings Grid */
 .listings-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
+  grid-template-columns: 1fr;
+  gap: 16px;
 }
 
-@media (min-width: 768px) {
+@media (min-width: 640px) {
   .listings-grid {
+    grid-template-columns: repeat(2, 1fr);
     gap: 20px;
   }
 }
@@ -1795,97 +1796,271 @@ ul {
   height: 16px;
 }
 
-/* Mobile adjustments */
+/* Mobile and Responsive Adjustments */
 @media (max-width: 991px) {
-  .listings-section {
-    padding: 16px 20px;
-    height: 100%;
-  }
-  
-  .map-section {
-    height: 100%;
+  :root {
+    --header-height: 70px;
+    --categories-height: 60px;
   }
 
   .header-container {
-    padding: 0 20px;
+    padding: 0 16px;
   }
 
-  .categories-container {
-    padding: 0 20px;
-    gap: 20px;
+  .listings-section {
+    padding: 20px 16px;
+  }
+}
+
+@media (max-width: 768px) {
+  :root {
+    --header-height: 62px;
+    --categories-height: 56px;
+  }
+
+  .main-header {
+    height: var(--header-height);
+  }
+
+  .header-container {
+    padding: 0 12px;
+    gap: 8px;
+  }
+
+  .logo-text {
+    font-size: 18px;
+  }
+
+  .logo-house-letter,
+  .logo-text span > svg.logo-house-letter {
+    width: 17px;
+    height: 17px;
+  }
+
+  /* Type Switcher compact */
+  .type-switcher {
+    padding: 2px;
+    gap: 2px;
+  }
+
+  .type-btn {
+    padding: 5px 10px;
+    font-size: 11px;
+  }
+
+  /* Compact Search Bar */
+  .search-bar-wrapper {
+    flex: 1;
+    min-width: 0;
   }
 
   .search-bar {
-    padding: 6px 6px 6px 16px;
+    padding: 4px 6px 4px 12px;
+    border-radius: 30px;
+    width: 100%;
+    justify-content: space-between;
   }
 
   .search-input-btn {
-    padding: 0 8px;
+    padding: 0 4px;
+  }
+
+  .search-title {
+    font-size: 11px;
+    white-space: nowrap;
+  }
+
+  .search-desc,
+  .search-divider {
+    display: none;
+  }
+
+  .search-button {
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+  }
+
+  .search-button i {
+    width: 15px;
+    height: 15px;
+  }
+
+  /* Search Dropdown overlay on mobile */
+  .search-dropdown {
+    position: fixed;
+    top: calc(var(--header-height) + 6px);
+    left: 12px;
+    right: 12px;
+    width: auto;
+    max-width: none;
+    transform: none;
+    padding: 18px;
+    z-index: 1000;
+  }
+
+  /* Header right actions */
+  .header-right {
+    gap: 6px;
+  }
+
+  .theme-toggle-btn {
+    width: 36px;
+    height: 36px;
+  }
+
+  .user-menu-btn {
+    padding: 4px 4px 4px 10px;
+    gap: 6px;
+  }
+
+  .user-avatar {
+    width: 28px;
+    height: 28px;
+  }
+
+  /* Categories Bar */
+  .categories-bar {
+    height: var(--categories-height);
+    top: var(--header-height);
+  }
+
+  .categories-container {
+    padding: 0 12px;
+    gap: 14px;
+  }
+
+  .category-item {
+    padding: 2px 0 6px;
+    gap: 4px;
+  }
+
+  .category-item i {
+    width: 18px;
+    height: 18px;
+  }
+
+  .category-item span {
+    font-size: 11px;
+  }
+
+  /* Main Layout */
+  .main-layout {
+    height: calc(100vh - var(--header-height) - var(--categories-height));
+    height: calc(100dvh - var(--header-height) - var(--categories-height));
+  }
+
+  .listings-section {
+    padding: 14px 12px 80px 12px;
+  }
+
+  .card-img-wrapper {
+    aspect-ratio: 16 / 10;
+  }
+
+  .card-info {
+    padding: 14px;
+  }
+
+  .card-title {
+    font-size: 15px;
+  }
+
+  .card-location {
+    font-size: 13px;
+  }
+
+  .card-price strong {
+    font-size: 17px;
+  }
+
+  /* Floating View Toggle Button */
+  .floating-view-toggle {
+    bottom: 16px;
+    padding: 10px 18px;
+    font-size: 13px;
+  }
+
+  /* Modals */
+  .modal-overlay {
+    padding: 10px;
+  }
+
+  .detail-modal-container {
+    max-height: 94dvh;
+    border-radius: var(--border-radius-md);
+  }
+
+  .detail-modal-content {
+    max-height: calc(94dvh - 2px);
+  }
+
+  .detail-gallery-slider {
+    aspect-ratio: 16 / 10;
+  }
+
+  .detail-layout {
+    padding: 16px;
+    gap: 20px;
+    grid-template-columns: 1fr;
+  }
+
+  .booking-card {
+    position: relative;
+    top: 0;
+    padding: 16px;
+  }
+
+  .login-modal-container {
+    padding: 24px 16px;
+  }
+
+  /* Admin section */
+  .admin-container {
+    flex-direction: column;
+  }
+
+  .admin-sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid var(--border-color);
+    padding: 12px 16px;
+  }
+
+  .admin-nav {
+    flex-direction: row;
+    overflow-x: auto;
+    gap: 8px;
+    padding-bottom: 4px;
+  }
+
+  .admin-nav-item {
+    white-space: nowrap;
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+
+  .admin-content {
+    padding: 16px 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .logo-text {
+    font-size: 16px;
+  }
+
+  .type-btn {
+    padding: 4px 8px;
+    font-size: 10px;
   }
 
   .search-title {
     font-size: 10px;
   }
 
-  .search-desc {
-    font-size: 12px;
-    max-width: 100px;
-  }
-
-  .search-dropdown {
-    width: calc(100vw - 40px);
-    max-width: 380px;
-  }
-}
-
-@media (max-width: 576px) {
-  .logo-text {
-    display: none; /* Show only icon on tiny screens */
-  }
-  
-  .search-bar-wrapper {
-    flex: 1;
-    margin: 0 10px;
-  }
-
-  .search-bar {
-    width: 100%;
-    justify-content: space-between;
-  }
-  
-  .detail-layout {
-    padding: 20px;
-  }
-
-  .detail-title {
-    font-size: 20px;
-  }
-
-  .detail-amenities-list {
-    grid-template-columns: 1fr;
-  }
-
-  .admin-content {
-    padding: 16px;
-  }
-
-  /* Compact Card Layout for 2-column mobile view */
-  .card-title {
-    font-size: 14px;
-  }
-  .card-location {
-    font-size: 12px;
-  }
-  .card-price strong {
-    font-size: 15px;
-  }
-  .card-price {
-    font-size: 13px;
-  }
-  .card-info {
-    padding: 10px;
-  }
-  .listings-section {
-    padding: 12px;
+  .header-container {
+    padding: 0 8px;
+    gap: 4px;
   }
 }
