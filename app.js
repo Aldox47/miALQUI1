@@ -735,10 +735,16 @@ function openPropertyDetail(id) {
     dotsContainer.appendChild(dot);
   });
 
-  // Show Modal
+// Show Modal
   document.getElementById("detail-modal").classList.remove("hidden");
   updateSliderPosition();
-  
+
+  // Center map on selected property
+  if (mainMap && prop.lat && prop.lng) {
+    mainMap.setView([prop.lat, prop.lng], 15, { animate: true });
+    highlightMapMarker(prop.id, true);
+  }
+
   // Create icons
   lucide.createIcons();
 }
@@ -1312,9 +1318,12 @@ function switchMobileView(view) {
         .filter(p => p.lat && p.lng)
         .map(p => [p.lat, p.lng]);
 
-      if (markerCoords.length > 0 && filtered.length < properties.length) {
+if (markerCoords.length > 0 && filtered.length < properties.length) {
         // If there's an active filter, fit to those markers
         mainMap.fitBounds(markerCoords, { padding: [40, 40], animate: false });
+      } else if (selectedProperty && selectedProperty.lat && selectedProperty.lng) {
+        // If there's a selected property, center on it
+        mainMap.setView([selectedProperty.lat, selectedProperty.lng], 15, { animate: false });
       } else {
         // Default: center on Coronel Oviedo
         mainMap.setView([-25.4450, -56.4440], 13.5, { animate: false });
