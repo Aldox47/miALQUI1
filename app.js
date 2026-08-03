@@ -744,9 +744,12 @@ function openPropertyDetail(id) {
   if (mapViewTimeout) { clearTimeout(mapViewTimeout); mapViewTimeout = null; }
 
   // Center map on selected property
-  if (mainMap && prop.lat && prop.lng) {
+  if (mainMap && prop && prop.lat != null && prop.lng != null && !isNaN(prop.lat) && !isNaN(prop.lng)) {
+    console.log("Centering map on property:", prop.title, "at", prop.lat, prop.lng);
     mainMap.setView([prop.lat, prop.lng], 15, { animate: true });
     highlightMapMarker(prop.id, true);
+  } else {
+    console.warn("Cannot center map: mainMap=", !!mainMap, "prop=", prop ? prop.title : "null", "lat=", prop ? prop.lat : "N/A", "lng=", prop ? prop.lng : "N/A");
   }
 
   // Create icons
