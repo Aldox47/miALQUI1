@@ -418,9 +418,13 @@ function updateMapMarkers(filteredProps) {
       autoPan: false // Prevent Leaflet autoPan from overriding setView
     });
 
-    // Highlight card list and center map when popup is opened
+// Highlight card list and center map when popup is opened
     marker.on('popupopen', () => {
-      mainMap.setView([prop.lat, prop.lng], 15, { animate: true });
+      if (mapViewTimeout) { clearTimeout(mapViewTimeout); mapViewTimeout = null; }
+      if (mainMap) {
+        mainMap.invalidateSize();
+        mainMap.setView([prop.lat, prop.lng], 15, { animate: true });
+      }
       highlightPropertyCard(prop.id);
     });
 
@@ -749,6 +753,8 @@ function openPropertyDetail(id) {
   // Center map on selected property
   if (mainMap && prop && prop.lat != null && prop.lng != null && !isNaN(prop.lat) && !isNaN(prop.lng)) {
     console.log("Centering map on property:", prop.title, "at", prop.lat, prop.lng);
+    // Ensure map container size is calculated (critical for mobile)
+    mainMap.invalidateSize();
     mainMap.setView([prop.lat, prop.lng], 15, { animate: true });
     highlightMapMarker(prop.id, true);
   } else {
