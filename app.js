@@ -538,7 +538,7 @@ function renderProperties() {
            <span class="card-price"><strong>${prop.price.toLocaleString('es-PY')} Gs.</strong> <span class="card-price-unit">${prop.type === 'alquiler' ? ' / mes' : ''}</span></span>
          </div>
        </div>
-       <button class="card-location-btn" onclick="event.stopPropagation(); openPropertyDetail('${prop.id}'); switchMobileView('map');" aria-label="Ver ubicación en mapa">
+       <button class="card-location-btn" onclick="event.stopPropagation(); switchMobileView('map', '${prop.id}');" aria-label="Ver ubicación en mapa">
          <i data-lucide="map"></i> Ver ubicación
        </button>
     `;
@@ -1302,7 +1302,7 @@ function handleSearchClear() {
 }
 
 // Switch mobile view (list or map)
-function switchMobileView(view) {
+function switchMobileView(view, focusPropertyId) {
   const mainLayout = document.getElementById("main-layout");
   const toggleBtn = document.getElementById("btn-floating-toggle");
   if (!mainLayout || !toggleBtn) return;
@@ -1314,7 +1314,7 @@ function switchMobileView(view) {
     mainLayout.classList.add("show-map-view");
     toggleBtn.innerHTML = `<i data-lucide="list"></i><span>Ver Lista</span>`;
 
-// Leaflet tiles break when the container was hidden during init.
+    // Leaflet tiles break when the container was hidden during init.
     // We must call invalidateSize() so it recalculates, then re-center.
     if (mapViewTimeout) clearTimeout(mapViewTimeout);
     mapViewTimeout = setTimeout(() => {
@@ -1324,7 +1324,16 @@ function switchMobileView(view) {
       // Step 1: force tile recalculation
       mainMap.invalidateSize({ animate: false });
 
-      // Step 2: re-center on selected property, filtered markers, or default
+      // Step 2: re-center on focused property, selected property, filtered markers, or default
+      if (focusPropertyId) {
+        const focusProp = properties.find(p => String(p.id) === String(focusPropertyId));
+        if (focusProp && focusProp.lat && focusProp.lng) {
+          mainMap.setView([focusProp.lat, focusProp.lng], 15, { animate: false });
+          highlightMapMarker(focusPropertyId, true);
+          return;
+        }
+      }
+
       const filtered = getFilteredProperties();
       const markerCoords = filtered
         .filter(p => p.lat && p.lng)
