@@ -38,6 +38,16 @@ const ADMIN_EMAIL = "admin@mialqui.com";
 const ADMIN_PASSWORD = "oviedo2026";
 const ADMIN_WHATSAPP = "595981234567"; // Teléfono default (puede ser modificado o parametrizado)
 
+// Category name mapping helpers (DB uses singular, app uses plural)
+function mapCategoryToDb(appCategory) {
+  const map = { "Casas": "Casa", "Departamentos": "Departamento", "Habitaciones": "Habitacion" };
+  return map[appCategory] || appCategory;
+}
+function mapCategoryFromDb(dbCategory) {
+  const map = { "Casa": "Casas", "Departamento": "Departamentos", "Habitacion": "Habitaciones" };
+  return map[dbCategory] || dbCategory;
+}
+
 // Init application on load
 window.addEventListener("DOMContentLoaded", async () => {
   initTheme();
@@ -124,7 +134,7 @@ async function loadPropertiesFromSupabase() {
 
   try {
     const { data, error } = await supabaseClient
-      .from('properties')
+      .from('propiedades')
       .select('*')
       .order('created_at', { ascending: false });
 
@@ -137,31 +147,53 @@ async function loadPropertiesFromSupabase() {
 
     if (data && data.length > 0) {
       properties = data.map(p => ({
-        ...p,
-        id: isNaN(Number(p.id)) ? p.id : Number(p.id),
-        price: Number(p.price),
-        lat: Number(p.lat),
-        lng: Number(p.lng),
-        images: Array.isArray(p.images) ? p.images : (typeof p.images === 'string' ? JSON.parse(p.images) : []),
-        amenities: Array.isArray(p.amenities) ? p.amenities : (typeof p.amenities === 'string' ? JSON.parse(p.amenities) : [])
+        id: p.id,
+        title: p.titulo || '',
+        category: mapCategoryFromDb(p.categoria || ''),
+        type: p.tipo_operacion || 'alquiler',
+        price: Number(p.precio) || 0,
+        lat: Number(p.latitud) || -25.4450,
+        lng: Number(p.longitud) || -56.4440,
+        description: p.descripcion || '',
+        location: p.direccion || [p.barrio, p.ciudad].filter(Boolean).join(', ') || 'Coronel Oviedo',
+        phone: p.whatsapp_contacto || ADMIN_WHATSAPP,
+        nombre_contacto: p.nombre_contacto || '',
+        ciudad: p.ciudad || 'Coronel Oviedo',
+        barrio: p.barrio || '',
+        habitaciones: p.habitaciones || null,
+        banos: p['baños'] || null,
+        cochera: p.cochera || null,
+        superficie: p.superficie || null,
+        images: Array.isArray(p.imagenes) ? p.imagenes : (p.imagenes ? [p.imagenes] : []),
+        amenities: p.servicios ? p.servicios.split(',').map(s => s.trim()).filter(Boolean) : [],
+        rating: 5.0,
+        reviewsCount: 0,
+        destacada: p.destacada || false,
+        disponible: p.disponible || 'disponible'
       }));
     } else {
       // Seed database with mockData if empty
       properties = INITIAL_PROPERTIES;
       for (const prop of INITIAL_PROPERTIES) {
-        await supabaseClient.from('properties').insert([{
-          id: String(prop.id),
-          title: prop.title,
-          category: prop.category,
-          type: prop.type || 'alquiler',
-          price: prop.price,
-          phone: prop.phone || ADMIN_WHATSAPP,
-          description: prop.description,
-          location: prop.location,
-          lat: prop.lat,
-          lng: prop.lng,
-          images: prop.images,
-          amenities: prop.amenities
+        await supabaseClient.from('propiedades').insert([{
+          titulo: prop.title,
+          descripcion: prop.description,
+          tipo_operacion: prop.type || 'alquiler',
+          categoria: mapCategoryToDb(prop.category),
+          precio: prop.price,
+          pais: 'Paraguay',
+          departamento: 'Caaguaz\u00fa',
+          ciudad: 'Coronel Oviedo',
+          barrio: '',
+          direccion: prop.location,
+          latitud: prop.lat,
+          longitud: prop.lng,
+          servicios: (prop.amenities || []).join(', '),
+          destacada: false,
+          disponible: 'disponible',
+          whatsapp_contacto: prop.phone || ADMIN_WHATSAPP,
+          nombre_contacto: 'Administrador',
+          imagenes: prop.images || []
         }]);
       }
     }
@@ -230,7 +262,7 @@ function updatePriceSliderBounds() {
     priceCurrentLabel.textContent = "Cualquiera";
   } else {
     const formatted = `${maxPrice.toLocaleString('es-PY')} Gs.`;
-    priceFilterLabel.textContent = `≤ ${formatted}`;
+    priceFilterLabel.textContent = `â‰¤ ${formatted}`;
     priceCurrentLabel.textContent = formatted;
   }
 }
@@ -356,7 +388,7 @@ function updateMapMarkers(filteredProps) {
     // Custom label pricing tag - Highlights with heart if favorited
     const priceIcon = L.divIcon({
       className: `custom-price-marker ${isFav ? 'favorite-marker' : ''}`,
-      html: `<span>${isFav ? '❤️ ' : ''}${formattedPrice} Gs.</span>`,
+      html: `<span>${isFav ? 'â¤ï¸ ' : ''}${formattedPrice} Gs.</span>`,
       iconSize: [isFav ? 90 : 80, 24],
       iconAnchor: [isFav ? 45 : 40, 12]
     });
@@ -366,10 +398,11 @@ function updateMapMarkers(filteredProps) {
     // Popup template with custom favorite heart button (inline SVG)
     const heartSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="${isFav ? 'var(--accent)' : 'none'}" stroke="${isFav ? 'var(--accent)' : 'currentColor'}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-heart"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>`;
     
+    const fallbackImg = 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=400&q=80';
     const popupContent = `
-      <div class="map-popup-card" onclick="openPropertyDetail(${prop.id})">
-        <img class="map-popup-img" src="${prop.images[0] || 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=400&q=80'}" alt="${prop.title}">
-        <button class="card-favorite-btn ${isFav ? 'active' : ''}" onclick="toggleFavorite(event, ${prop.id})" aria-label="Favorito" style="top: 8px; right: 8px; width: 28px; height: 28px; padding: 0; display: flex; align-items: center; justify-content: center; background-color: rgba(255,255,255,0.9); border-radius: 50%; position: absolute; z-index: 10;">
+      <div class="map-popup-card" onclick="openPropertyDetail('${prop.id}')">
+        <img class="map-popup-img" src="${(prop.images && prop.images[0]) || fallbackImg}" alt="${prop.title}">
+        <button class="card-favorite-btn ${isFav ? 'active' : ''}" onclick="toggleFavorite(event, '${prop.id}')" aria-label="Favorito" style="top: 8px; right: 8px; width: 28px; height: 28px; padding: 0; display: flex; align-items: center; justify-content: center; background-color: rgba(255,255,255,0.9); border-radius: 50%; position: absolute; z-index: 10;">
           ${heartSvg}
         </button>
         <div class="map-popup-info">
@@ -467,7 +500,7 @@ function renderProperties() {
       <div class="no-properties">
         <i data-lucide="info" class="no-prop-icon"></i>
         <h3>No se encontraron propiedades</h3>
-        <p>Intenta cambiar los filtros de búsqueda o categoría.</p>
+        <p>Intenta cambiar los filtros de bÃºsqueda o categorÃ­a.</p>
         <button class="btn-primary margin-top-md" onclick="resetFilters()">Limpiar Filtros</button>
       </div>
     `;
@@ -484,15 +517,16 @@ function renderProperties() {
     card.id = `property-card-${prop.id}`;
     card.dataset.id = prop.id;
 
+    const cardFallbackImg = 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80';
     card.innerHTML = `
-      <div class="card-img-wrapper" onclick="openPropertyDetail(${prop.id})">
-        <img class="card-img" src="${prop.images[0]}" alt="${prop.title}">
+      <div class="card-img-wrapper" onclick="openPropertyDetail('${prop.id}')">
+        <img class="card-img" src="${(prop.images && prop.images[0]) || cardFallbackImg}" alt="${prop.title}">
         <span class="card-category-badge">${prop.category}</span>
       </div>
-      <button class="card-favorite-btn ${isFav ? 'active' : ''}" onclick="toggleFavorite(event, ${prop.id})" aria-label="Favorito">
+      <button class="card-favorite-btn ${isFav ? 'active' : ''}" onclick="toggleFavorite(event, '${prop.id}')" aria-label="Favorito">
         <i data-lucide="heart"></i>
       </button>
-      <div class="card-info" onclick="openPropertyDetail(${prop.id})">
+      <div class="card-info" onclick="openPropertyDetail('${prop.id}')">
         <div class="card-title-row">
           <h3 class="card-title">${prop.title}</h3>
         </div>
@@ -582,7 +616,7 @@ function renderFilterTags() {
   container.innerHTML = "";
 
   if (searchQuery) {
-    addFilterTag(`Búsqueda: "${searchQuery}"`, () => {
+    addFilterTag(`BÃºsqueda: "${searchQuery}"`, () => {
       searchQuery = "";
       document.getElementById("search-input-text").value = "";
       renderProperties();
@@ -591,7 +625,7 @@ function renderFilterTags() {
 
   const maxLimit = currentType === "alquiler" ? 5000000 : 2000000000;
   if (maxPrice < maxLimit) {
-    addFilterTag(`Precio máx: ${maxPrice.toLocaleString('es-PY')} Gs.`, () => {
+    addFilterTag(`Precio mÃ¡x: ${maxPrice.toLocaleString('es-PY')} Gs.`, () => {
       maxPrice = maxLimit;
       updatePriceSliderBounds();
       renderProperties();
@@ -630,7 +664,7 @@ function resetFilters() {
 
 // Property Details Modal & Slider Logic
 function openPropertyDetail(id) {
-  const prop = properties.find(p => p.id === id);
+  const prop = properties.find(p => String(p.id) === String(id));
   if (!prop) return;
 
   selectedProperty = prop;
@@ -650,7 +684,7 @@ function openPropertyDetail(id) {
   // Dynamic WhatsApp Link Generation
   const whatsappNumber = prop.phone || ADMIN_WHATSAPP;
   const actionWord = prop.type === "alquiler" ? "alquilar" : "comprar";
-  const messageText = `Hola! Estoy interesado/a en ${actionWord} la propiedad "${prop.title}" (${prop.category}) en ${prop.location} publicada en MiAlqui. ¿Está disponible?`;
+  const messageText = `Hola! Estoy interesado/a en ${actionWord} la propiedad "${prop.title}" (${prop.category}) en ${prop.location} publicada en MiAlqui. Â¿EstÃ¡ disponible?`;
   const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(messageText)}`;
   
   const waButton = document.getElementById("btn-whatsapp-booking");
@@ -660,7 +694,7 @@ function openPropertyDetail(id) {
   // Amenities dynamic loading
   const amenitiesList = document.getElementById("detail-amenities-list");
   amenitiesList.innerHTML = "";
-  prop.amenities.forEach(am => {
+  (prop.amenities || []).forEach(am => {
     // Pick an icon based on name
     let icon = "check";
     const nameLower = am.toLowerCase();
@@ -687,7 +721,7 @@ function openPropertyDetail(id) {
   wrapper.innerHTML = "";
   dotsContainer.innerHTML = "";
 
-  prop.images.forEach((img, index) => {
+  (prop.images || []).forEach((img, index) => {
     // Image wrapper
     const imgEl = document.createElement("img");
     imgEl.className = "detail-slide-img";
@@ -890,9 +924,10 @@ function renderAdminPropertiesTable() {
       ? 'background-color: var(--primary-light); color: var(--primary); padding: 2px 6px; border-radius: 12px; font-weight: 600;' 
       : 'background-color: rgba(244, 63, 94, 0.1); color: var(--accent); padding: 2px 6px; border-radius: 12px; font-weight: 600;';
 
+    const adminFallbackImg = 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=200&q=80';
     const tr = document.createElement("tr");
     tr.innerHTML = `
-      <td><img class="admin-table-img" src="${prop.images[0]}" alt="${prop.title}"></td>
+      <td><img class="admin-table-img" src="${(prop.images && prop.images[0]) || adminFallbackImg}" alt="${prop.title}"></td>
       <td>
         <div class="font-semibold">${prop.title}</div>
         <div class="text-muted" style="font-size: 12px;">${prop.location}</div>
@@ -905,8 +940,8 @@ function renderAdminPropertiesTable() {
       <td style="font-size: 12px; color: var(--text-light);">Lat: ${prop.lat.toFixed(4)}<br>Lng: ${prop.lng.toFixed(4)}</td>
       <td>
         <div class="admin-table-actions">
-          <button class="btn-action btn-action-edit" onclick="handleEditProperty(${prop.id})" title="Editar"><i data-lucide="edit-2"></i></button>
-          <button class="btn-action btn-action-delete" onclick="handleDeleteProperty(${prop.id})" title="Eliminar"><i data-lucide="trash-2"></i></button>
+          <button class="btn-action btn-action-edit" onclick="handleEditProperty('${prop.id}')" title="Editar"><i data-lucide="edit-2"></i></button>
+          <button class="btn-action btn-action-delete" onclick="handleDeleteProperty('${prop.id}')" title="Eliminar"><i data-lucide="trash-2"></i></button>
         </div>
       </td>
     `;
@@ -937,7 +972,7 @@ function initPickerMap() {
   // If we are editing, center on current property coordinates
   const editingId = document.getElementById("form-property-id").value;
   if (editingId) {
-    const prop = properties.find(p => p.id === parseInt(editingId));
+    const prop = properties.find(p => String(p.id) === String(editingId));
     if (prop) {
       centerLat = prop.lat;
       centerLng = prop.lng;
@@ -978,7 +1013,7 @@ function initPickerMap() {
 
 // Edit existing property
 function handleEditProperty(id) {
-  const prop = properties.find(p => p.id === id);
+  const prop = properties.find(p => String(p.id) === String(id));
   if (!prop) return;
 
   // Prepare form values
@@ -993,16 +1028,25 @@ function handleEditProperty(id) {
   document.getElementById("form-lat-input").value = prop.lat;
   document.getElementById("form-lng-input").value = prop.lng;
 
+  // New fields
+  document.getElementById("form-contactname-input").value = prop.nombre_contacto || '';
+  document.getElementById("form-ciudad-input").value = prop.ciudad || 'Coronel Oviedo';
+  document.getElementById("form-barrio-input").value = prop.barrio || '';
+  document.getElementById("form-habitaciones-input").value = prop.habitaciones || '';
+  document.getElementById("form-banos-input").value = prop.banos || '';
+  document.getElementById("form-cochera-input").value = prop.cochera || '';
+  document.getElementById("form-superficie-input").value = prop.superficie || '';
+
   // Form Photos inputs
   const imgInputs = document.querySelectorAll(".form-image-url");
   imgInputs.forEach((input, index) => {
-    input.value = prop.images[index] || "";
+    input.value = (prop.images && prop.images[index]) || "";
   });
 
   // Services checkboxes
   const checkboxes = document.querySelectorAll("#amenities-checkboxes-container input");
   checkboxes.forEach(cb => {
-    cb.checked = prop.amenities.includes(cb.value);
+    cb.checked = (prop.amenities || []).includes(cb.value);
   });
 
   // Switch header
@@ -1020,13 +1064,13 @@ function handleEditProperty(id) {
 
 // Delete listing property
 async function handleDeleteProperty(id) {
-  const prop = properties.find(p => p.id === id);
+  const prop = properties.find(p => String(p.id) === String(id));
   if (!prop) return;
 
   if (confirm(`¿Estás seguro de que deseas eliminar la propiedad "${prop.title}"?`)) {
     if (supabaseClient) {
       const { error } = await supabaseClient
-        .from('properties')
+        .from('propiedades')
         .delete()
         .eq('id', String(id));
         
@@ -1037,8 +1081,8 @@ async function handleDeleteProperty(id) {
       }
     }
 
-    properties = properties.filter(p => p.id !== id);
-    favorites = favorites.filter(favId => favId !== id);
+    properties = properties.filter(p => String(p.id) !== String(id));
+    favorites = favorites.filter(favId => String(favId) !== String(id));
     saveFavoritesState();
     savePropertiesState();
   }
@@ -1059,6 +1103,15 @@ async function handlePropertyFormSubmit(event) {
   const lat = parseFloat(document.getElementById("form-lat-input").value);
   const lng = parseFloat(document.getElementById("form-lng-input").value);
 
+  // New fields
+  const nombre_contacto = document.getElementById("form-contactname-input").value.trim();
+  const ciudad = document.getElementById("form-ciudad-input").value.trim() || 'Coronel Oviedo';
+  const barrio = document.getElementById("form-barrio-input").value.trim();
+  const habitaciones = parseInt(document.getElementById("form-habitaciones-input").value) || null;
+  const banos = parseInt(document.getElementById("form-banos-input").value) || null;
+  const cochera = parseInt(document.getElementById("form-cochera-input").value) || null;
+  const superficie = parseInt(document.getElementById("form-superficie-input").value) || null;
+
   // Compile image URLs list
   const images = [];
   document.querySelectorAll(".form-image-url").forEach(input => {
@@ -1066,8 +1119,6 @@ async function handlePropertyFormSubmit(event) {
       images.push(input.value.trim());
     }
   });
-
-  // If no image is supplied, load placeholder
   if (images.length === 0) {
     images.push("https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80");
   }
@@ -1078,112 +1129,104 @@ async function handlePropertyFormSubmit(event) {
     amenities.push(cb.value);
   });
 
-  if (id) {
-    // UPDATE MODE
-    const propId = isNaN(Number(id)) ? id : Number(id);
-    const index = properties.findIndex(p => p.id === propId);
-    if (index !== -1) {
-      const updatedProp = {
-        ...properties[index],
-        title,
-        category,
-        type,
-        price,
-        phone,
-        location,
-        description,
-        lat,
-        lng,
-        images,
-        amenities
-      };
+  // Build Supabase DB payload with correct column names
+  const dbPayload = {
+    titulo: title,
+    descripcion: description,
+    tipo_operacion: type,
+    categoria: mapCategoryToDb(category),
+    precio: price,
+    pais: 'Paraguay',
+    departamento: 'Caaguaz\u00fa',
+    ciudad,
+    barrio,
+    direccion: location,
+    latitud: lat,
+    longitud: lng,
+    habitaciones,
+    cochera,
+    superficie,
+    servicios: amenities.join(', '),
+    whatsapp_contacto: phone,
+    nombre_contacto,
+    imagenes: images,
+    destacada: false,
+    disponible: 'disponible'
+  };
+  dbPayload['ba\u00f1os'] = banos; // baños with ñ
+
+  try {
+    if (id) {
+      // UPDATE MODE
+      const index = properties.findIndex(p => String(p.id) === String(id));
+      if (index !== -1) {
+        const updatedProp = {
+          ...properties[index],
+          title, category, type, price, phone, location, description, lat, lng,
+          images, amenities, nombre_contacto, ciudad, barrio, habitaciones, banos, cochera, superficie
+        };
+
+        if (supabaseClient) {
+          const { error } = await supabaseClient
+            .from('propiedades')
+            .update(dbPayload)
+            .eq('id', String(id));
+
+          if (error) {
+            console.error("Error updating property in Supabase:", error);
+            alert("Hubo un error al guardar los cambios en Supabase. Inténtalo de nuevo.");
+            return;
+          }
+        }
+
+        properties[index] = updatedProp;
+        alert(type === "alquiler" ? "Alquiler actualizado con éxito." : "Venta actualizada con éxito.");
+      }
+    } else {
+      // CREATE MODE - let Supabase generate the UUID
+      let newId = null;
 
       if (supabaseClient) {
-        const { error } = await supabaseClient
-          .from('properties')
-          .update({
-            title,
-            category,
-            type,
-            price,
-            phone,
-            location,
-            description,
-            lat,
-            lng,
-            images,
-            amenities
-          })
-          .eq('id', String(id));
+        const { data: insertedData, error } = await supabaseClient
+          .from('propiedades')
+          .insert([dbPayload])
+          .select('id')
+          .single();
 
         if (error) {
-          console.error("Error updating property in Supabase:", error);
-          alert("Hubo un error al guardar los cambios en Supabase. Inténtalo de nuevo.");
+          console.error("Error creating property in Supabase:", error);
+          alert("Hubo un error al guardar la propiedad en Supabase. Inténtalo de nuevo.");
           return;
         }
+
+        newId = insertedData ? insertedData.id : String(Date.now());
+      } else {
+        newId = String(Date.now());
       }
 
-      properties[index] = updatedProp;
-      alert(type === "alquiler" ? "Alquiler actualizado con éxito." : "Venta actualizada con éxito.");
-    }
-  } else {
-    // CREATE MODE
-    const newNumericId = properties.length > 0 ? Math.max(...properties.map(p => typeof p.id === 'number' ? p.id : 0)) + 1 : 1;
-    const newIdStr = String(newNumericId);
-    const newProp = {
-      id: newNumericId,
-      title,
-      category,
-      type,
-      price,
-      phone,
-      location,
-      lat,
-      lng,
-      rating: 5.0,
-      reviewsCount: 0,
-      description,
-      images,
-      amenities
-    };
+      const newProp = {
+        id: newId,
+        title, category, type, price, phone, location, lat, lng,
+        rating: 5.0, reviewsCount: 0, description, images, amenities,
+        nombre_contacto, ciudad, barrio, habitaciones, banos, cochera, superficie
+      };
 
-    if (supabaseClient) {
-      const { error } = await supabaseClient
-        .from('properties')
-        .insert([{
-          id: newIdStr,
-          title,
-          category,
-          type,
-          price,
-          phone,
-          location,
-          description,
-          lat,
-          lng,
-          images,
-          amenities
-        }]);
-
-      if (error) {
-        console.error("Error creating property in Supabase:", error);
-        alert("Hubo un error al guardar la propiedad en Supabase. Inténtalo de nuevo.");
-        return;
-      }
+      properties.unshift(newProp);
+      alert(type === "alquiler" ? "Nuevo alquiler agregado con éxito." : "Nueva venta agregada con éxito.");
     }
 
-    properties.unshift(newProp);
-    alert(type === "alquiler" ? "Nuevo alquiler agregado con éxito." : "Nueva venta agregada con éxito.");
+    // Reset form
+    resetPropertyForm();
+    
+    // Persist State
+    savePropertiesState();
+
+    // Return to table list
+    switchAdminView("list");
+  } catch (err) {
+    console.error("Error saving property:", err);
+    alert("Hubo un error al guardar la propiedad. Inténtalo de nuevo.");
   }
-
-  // Reset form
-  resetPropertyForm();
-  
-  // Persist State
-  savePropertiesState();
-
-  // Return to table list
-  switchAdminView("list");
 }
 
 function resetPropertyForm() {
@@ -1224,7 +1267,7 @@ function handleSearchApply() {
   const priceLabel = document.getElementById("price-filter-label");
   const maxLimit = currentType === "alquiler" ? 5000000 : 2000000000;
   if (maxPrice < maxLimit) {
-    priceLabel.textContent = `≤ ${maxPrice.toLocaleString('es-PY')} Gs.`;
+    priceLabel.textContent = `â‰¤ ${maxPrice.toLocaleString('es-PY')} Gs.`;
   } else {
     priceLabel.textContent = "Cualquiera";
   }
@@ -1420,3 +1463,4 @@ function initEventListeners() {
   // Floating view toggle action
   document.getElementById("btn-floating-toggle").addEventListener("click", toggleMapView);
 }
+
