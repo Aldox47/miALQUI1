@@ -165,13 +165,13 @@ async function loadPropertiesFromSupabase() {
         cochera: p.cochera || null,
         superficie: p.superficie || null,
         images: Array.isArray(p.imagenes) ? p.imagenes : (p.imagenes ? [p.imagenes] : []),
-        amenities: p.servicios ? p.servicios.split(',').map(s => s.trim()).filter(Boolean) : [],
+        amenities: Array.isArray(p.servicios) ? p.servicios : (p.servicios ? p.servicios.split(',').map(s => s.trim()).filter(Boolean) : []),
         rating: 5.0,
         reviewsCount: 0,
         destacada: p.destacada || false,
         disponible: p.disponible || 'disponible'
       }));
-    } else {
+} else {
       // Seed database with mockData if empty
       properties = INITIAL_PROPERTIES;
       for (const prop of INITIAL_PROPERTIES) {
@@ -188,12 +188,11 @@ async function loadPropertiesFromSupabase() {
           direccion: prop.location,
           latitud: prop.lat,
           longitud: prop.lng,
-          servicios: (prop.amenities || []).join(', '),
+          servicios: prop.amenities || [],
           destacada: false,
           disponible: 'disponible',
           whatsapp_contacto: prop.phone || ADMIN_WHATSAPP,
-          nombre_contacto: 'Administrador',
-          imagenes: prop.images || []
+          nombre_contacto: 'Administrador'
         }]);
       }
     }
@@ -1076,7 +1075,7 @@ async function handleDeleteProperty(id) {
         
       if (error) {
         console.error("Error deleting property from Supabase:", error);
-        alert("Error al eliminar la propiedad en Supabase. Inténtalo de nuevo.");
+        alert("Error al eliminar la propiedad en Supabase: " + error.message);
         return;
       }
     }
@@ -1146,10 +1145,9 @@ async function handlePropertyFormSubmit(event) {
     habitaciones,
     cochera,
     superficie,
-    servicios: amenities.join(', '),
+    servicios: amenities,
     whatsapp_contacto: phone,
     nombre_contacto,
-    imagenes: images,
     destacada: false,
     disponible: 'disponible'
   };
@@ -1174,7 +1172,7 @@ async function handlePropertyFormSubmit(event) {
 
           if (error) {
             console.error("Error updating property in Supabase:", error);
-            alert("Hubo un error al guardar los cambios en Supabase. Inténtalo de nuevo.");
+            alert("Hubo un error al guardar los cambios en Supabase: " + error.message);
             return;
           }
         }
@@ -1195,7 +1193,7 @@ async function handlePropertyFormSubmit(event) {
 
         if (error) {
           console.error("Error creating property in Supabase:", error);
-          alert("Hubo un error al guardar la propiedad en Supabase. Inténtalo de nuevo.");
+          alert("Hubo un error al guardar la propiedad en Supabase: " + error.message);
           return;
         }
 
@@ -1225,7 +1223,7 @@ async function handlePropertyFormSubmit(event) {
     switchAdminView("list");
   } catch (err) {
     console.error("Error saving property:", err);
-    alert("Hubo un error al guardar la propiedad. Inténtalo de nuevo.");
+    alert("Hubo un error al guardar la propiedad: " + err.message);
   }
 }
 
