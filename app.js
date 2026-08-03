@@ -526,18 +526,21 @@ function renderProperties() {
       <button class="card-favorite-btn ${isFav ? 'active' : ''}" onclick="toggleFavorite(event, '${prop.id}')" aria-label="Favorito">
         <i data-lucide="heart"></i>
       </button>
-      <div class="card-info" onclick="openPropertyDetail('${prop.id}')">
-        <div class="card-title-row">
-          <h3 class="card-title">${prop.title}</h3>
-        </div>
-        <div class="card-location">
-          <i data-lucide="map-pin"></i>
-          <span>${prop.location}</span>
-        </div>
-        <div class="card-price-row">
-          <span class="card-price"><strong>${prop.price.toLocaleString('es-PY')} Gs.</strong> <span class="card-price-unit">${prop.type === 'alquiler' ? ' / mes' : ''}</span></span>
-        </div>
-      </div>
+<div class="card-info" onclick="openPropertyDetail('${prop.id}')">
+         <div class="card-title-row">
+           <h3 class="card-title">${prop.title}</h3>
+         </div>
+         <div class="card-location">
+           <i data-lucide="map-pin"></i>
+           <span>${prop.location}</span>
+         </div>
+         <div class="card-price-row">
+           <span class="card-price"><strong>${prop.price.toLocaleString('es-PY')} Gs.</strong> <span class="card-price-unit">${prop.type === 'alquiler' ? ' / mes' : ''}</span></span>
+         </div>
+       </div>
+       <button class="card-location-btn" onclick="event.stopPropagation(); openPropertyDetail('${prop.id}'); switchMobileView('map');" aria-label="Ver ubicación en mapa">
+         <i data-lucide="map"></i> Ver ubicación
+       </button>
     `;
 
     // Mouse hover events to highlight map markers

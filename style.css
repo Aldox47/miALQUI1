@@ -847,6 +847,29 @@ ul {
   fill: var(--accent);
 }
 
+.card-location-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+  background-color: var(--bg-secondary);
+  color: var(--primary);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  font-family: inherit;
+}
+
+.card-location-btn:hover {
+  background-color: var(--primary-light);
+  color: var(--primary);
+}
+
 .card-category-badge {
   position: absolute;
   bottom: 12px;
