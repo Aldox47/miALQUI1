@@ -541,9 +541,6 @@ function renderProperties() {
       <button class="card-location-btn" onclick="event.stopPropagation(); switchMobileView('map', '${prop.id}');" aria-label="Ver ubicación en mapa">
         <i data-lucide="map"></i> Ver ubicación
       </button>
-      <button class="card-preview-btn" onclick="event.stopPropagation(); openPropertyPreview('${prop.id}')" aria-label="Previsualizar propiedad">
-        <i data-lucide="eye"></i> Previsualizar
-      </button>
     `;
 
     // Mouse hover events to highlight map markers
@@ -765,40 +762,6 @@ function openPropertyDetail(id) {
 function closePropertyDetail() {
   document.getElementById("detail-modal").classList.add("hidden");
   selectedProperty = null;
-}
-
-// Property Preview Overlay
-function openPropertyPreview(id) {
-  const prop = properties.find(p => String(p.id) === String(id));
-  if (!prop) return;
-
-  const preview = document.getElementById("property-preview");
-  if (!preview) return;
-
-  const fallbackImg = 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80';
-  document.getElementById("preview-img").src = (prop.images && prop.images[0]) || fallbackImg;
-  document.getElementById("preview-title").textContent = prop.title;
-  document.getElementById("preview-category").textContent = prop.category;
-  document.getElementById("preview-type").textContent = prop.type === "alquiler" ? "Alquiler" : "Venta";
-  document.getElementById("preview-price").textContent = `${prop.price.toLocaleString('es-PY')} Gs.${prop.type === "alquiler" ? " / mes" : ""}`;
-  document.getElementById("preview-location").textContent = prop.location;
-  document.getElementById("preview-desc").textContent = prop.description;
-
-  const amenitiesList = document.getElementById("preview-amenities");
-  amenitiesList.innerHTML = "";
-  (prop.amenities || []).forEach(am => {
-    const li = document.createElement("li");
-    li.textContent = am;
-    amenitiesList.appendChild(li);
-  });
-
-  preview.classList.remove("hidden");
-  preview.dataset.propertyId = id;
-}
-
-function closePropertyPreview() {
-  const preview = document.getElementById("property-preview");
-  if (preview) preview.classList.add("hidden");
 }
 
 // Detail Image Slider Navigation
@@ -1471,19 +1434,6 @@ function initEventListeners() {
 document.getElementById("btn-close-detail").addEventListener("click", closePropertyDetail);
   document.getElementById("detail-modal").addEventListener("click", (e) => {
     if (e.target === document.getElementById("detail-modal")) closePropertyDetail();
-  });
-
-  // Preview modal close
-  document.getElementById("btn-close-preview").addEventListener("click", closePropertyPreview);
-  document.getElementById("property-preview").addEventListener("click", (e) => {
-    if (e.target === document.getElementById("property-preview")) closePropertyPreview();
-  });
-  document.getElementById("btn-open-detail-from-preview").addEventListener("click", () => {
-    const preview = document.getElementById("property-preview");
-    if (preview && preview.dataset.propertyId) {
-      closePropertyPreview();
-      openPropertyDetail(preview.dataset.propertyId);
-    }
   });
 
   // Image detail slider arrows
