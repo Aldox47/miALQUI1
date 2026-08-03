@@ -11,6 +11,7 @@ let currentType = "alquiler";
 // Selected property for detail view & slider state
 let selectedProperty = null;
 let currentSlideIndex = 0;
+let mapViewTimeout = null;
 
 // Leaflet Map instances
 let mainMap = null;
@@ -739,6 +740,9 @@ function openPropertyDetail(id) {
   document.getElementById("detail-modal").classList.remove("hidden");
   updateSliderPosition();
 
+  // Cancel any pending map view reset from switchMobileView
+  if (mapViewTimeout) { clearTimeout(mapViewTimeout); mapViewTimeout = null; }
+
   // Center map on selected property
   if (mainMap && prop.lat && prop.lng) {
     mainMap.setView([prop.lat, prop.lng], 15, { animate: true });
@@ -1304,28 +1308,27 @@ function switchMobileView(view) {
     mainLayout.classList.add("show-map-view");
     toggleBtn.innerHTML = `<i data-lucide="list"></i><span>Ver Lista</span>`;
 
-    // Leaflet tiles break when the container was hidden during init.
+// Leaflet tiles break when the container was hidden during init.
     // We must call invalidateSize() so it recalculates, then re-center.
-    setTimeout(() => {
+    if (mapViewTimeout) clearTimeout(mapViewTimeout);
+    mapViewTimeout = setTimeout(() => {
+      mapViewTimeout = null;
       if (!mainMap) return;
 
       // Step 1: force tile recalculation
       mainMap.invalidateSize({ animate: false });
 
-      // Step 2: re-center on Coronel Oviedo (or fit visible markers)
+      // Step 2: re-center on selected property, filtered markers, or default
       const filtered = getFilteredProperties();
       const markerCoords = filtered
         .filter(p => p.lat && p.lng)
         .map(p => [p.lat, p.lng]);
 
-if (markerCoords.length > 0 && filtered.length < properties.length) {
-        // If there's an active filter, fit to those markers
+      if (markerCoords.length > 0 && filtered.length < properties.length) {
         mainMap.fitBounds(markerCoords, { padding: [40, 40], animate: false });
       } else if (selectedProperty && selectedProperty.lat && selectedProperty.lng) {
-        // If there's a selected property, center on it
         mainMap.setView([selectedProperty.lat, selectedProperty.lng], 15, { animate: false });
       } else {
-        // Default: center on Coronel Oviedo
         mainMap.setView([-25.4450, -56.4440], 13.5, { animate: false });
       }
     }, 150);
