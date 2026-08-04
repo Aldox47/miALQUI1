@@ -262,7 +262,7 @@ function updatePriceSliderBounds() {
     priceCurrentLabel.textContent = "Cualquiera";
   } else {
     const formatted = `${maxPrice.toLocaleString('es-PY')} Gs.`;
-    priceFilterLabel.textContent = `â‰¤ ${formatted}`;
+    priceFilterLabel.textContent = `≤ ${formatted}`;
     priceCurrentLabel.textContent = formatted;
   }
 }
@@ -392,7 +392,7 @@ function updateMapMarkers(filteredProps) {
     // Custom label pricing tag - Highlights with heart if favorited
     const priceIcon = L.divIcon({
       className: `custom-price-marker ${isFav ? 'favorite-marker' : ''}`,
-      html: `<span>${isFav ? 'â¤ï¸ ' : ''}${formattedPrice} Gs.</span>`,
+      html: `<span>${isFav ? '❤️ ' : ''}${formattedPrice} Gs.</span>`,
       iconSize: [isFav ? 90 : 80, 24],
       iconAnchor: [isFav ? 45 : 40, 12]
     });
@@ -515,7 +515,7 @@ function renderProperties() {
       <div class="no-properties">
         <i data-lucide="info" class="no-prop-icon"></i>
         <h3>No se encontraron propiedades</h3>
-        <p>Intenta cambiar los filtros de bÃºsqueda o categorÃ­a.</p>
+        <p>Intenta cambiar los filtros de búsqueda o categoría.</p>
         <button class="btn-primary margin-top-md" onclick="resetFilters()">Limpiar Filtros</button>
       </div>
     `;
@@ -635,7 +635,7 @@ function renderFilterTags() {
   container.innerHTML = "";
 
   if (searchQuery) {
-    addFilterTag(`BÃºsqueda: "${searchQuery}"`, () => {
+    addFilterTag(`Búsqueda: "${searchQuery}"`, () => {
       searchQuery = "";
       document.getElementById("search-input-text").value = "";
       renderProperties();
@@ -644,7 +644,7 @@ function renderFilterTags() {
 
   const maxLimit = currentType === "alquiler" ? 5000000 : 2000000000;
   if (maxPrice < maxLimit) {
-    addFilterTag(`Precio mÃ¡x: ${maxPrice.toLocaleString('es-PY')} Gs.`, () => {
+    addFilterTag(`Precio máx: ${maxPrice.toLocaleString('es-PY')} Gs.`, () => {
       maxPrice = maxLimit;
       updatePriceSliderBounds();
       renderProperties();
@@ -703,9 +703,7 @@ function openPropertyDetail(id) {
   // Dynamic WhatsApp Link Generation
   const whatsappNumber = prop.phone || ADMIN_WHATSAPP;
   const actionWord = prop.type === "alquiler" ? "alquilar" : "comprar";
-  const messageText = `Hola! Estoy interesado/a en ${actionWord} la propiedad "${prop.title}" (${prop.category}) en ${prop.location} publicada en MiAlqui. Â¿EstÃ¡ disponible?`;
-  const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(messageText)}`;
-  
+    const messageText = `Hola! Estoy interesado/a en ${actionWord} la propiedad "${prop.title}" (${prop.category}) en ${prop.location} publicada en MiAlqui. ¿Está disponible?`;
   const waButton = document.getElementById("btn-whatsapp-booking");
   waButton.href = whatsappUrl;
   waButton.innerHTML = `<i data-lucide="message-circle"></i> Contactar para ${prop.type === 'alquiler' ? 'Alquilar' : 'Comprar'}`;
@@ -1299,7 +1297,7 @@ function handleSearchApply() {
   const priceLabel = document.getElementById("price-filter-label");
   const maxLimit = currentType === "alquiler" ? 5000000 : 2000000000;
   if (maxPrice < maxLimit) {
-    priceLabel.textContent = `â‰¤ ${maxPrice.toLocaleString('es-PY')} Gs.`;
+    priceLabel.textContent = `≤ ${maxPrice.toLocaleString('es-PY')} Gs.`;
   } else {
     priceLabel.textContent = "Cualquiera";
   }
