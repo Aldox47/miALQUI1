@@ -361,6 +361,10 @@ function initMainMap() {
       const prop = properties.find(p => Math.abs(p.lat - latLng.lat) < 0.0001 && Math.abs(p.lng - latLng.lng) < 0.0001);
       if (prop) {
         openPopupPropertyId = prop.id;
+        if (mainMap) {
+          mainMap.invalidateSize();
+          mainMap.setView([latLng.lat, latLng.lng], 15, { animate: true });
+        }
       }
     }
   });
@@ -416,6 +420,13 @@ function updateMapMarkers(filteredProps) {
       maxWidth: 240,
       closeButton: false,
       autoPan: false // Prevent Leaflet autoPan from overriding setView
+    });
+
+    marker.on('click', () => {
+      if (mainMap) {
+        mainMap.invalidateSize();
+        mainMap.setView([prop.lat, prop.lng], 15, { animate: true });
+      }
     });
 
 // Highlight card list and center map when popup is opened
