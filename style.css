@@ -983,6 +983,7 @@ ul {
   width: 100%;
   height: 100%;
   z-index: 1;
+  visibility: visible;
 }
 
 /* Customizing Leaflet Popups to match modern design */

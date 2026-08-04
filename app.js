@@ -546,6 +546,7 @@ function renderProperties() {
           <i data-lucide="map"></i> Ver ubicación
         </button>
       </div>
+    `;
 
     // Mouse hover events to highlight map markers
     card.addEventListener("mouseenter", () => {
