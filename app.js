@@ -703,10 +703,13 @@ function openPropertyDetail(id) {
   // Dynamic WhatsApp Link Generation
   const whatsappNumber = prop.phone || ADMIN_WHATSAPP;
   const actionWord = prop.type === "alquiler" ? "alquilar" : "comprar";
-    const messageText = `Hola! Estoy interesado/a en ${actionWord} la propiedad "${prop.title}" (${prop.category}) en ${prop.location} publicada en MiAlqui. ¿Está disponible?`;
+  const messageText = `Hola! Estoy interesado/a en ${actionWord} la propiedad "${prop.title}" (${prop.category}) en ${prop.location} publicada en MiAlqui. ¿Está disponible?`;
+  const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(messageText)}`;
   const waButton = document.getElementById("btn-whatsapp-booking");
-  waButton.href = whatsappUrl;
-  waButton.innerHTML = `<i data-lucide="message-circle"></i> Contactar para ${prop.type === 'alquiler' ? 'Alquilar' : 'Comprar'}`;
+  if (waButton) {
+    waButton.href = whatsappUrl;
+    waButton.innerHTML = `<i data-lucide="message-circle"></i> Contactar para ${prop.type === 'alquiler' ? 'Alquilar' : 'Comprar'}`;
+  }
 
   // Amenities dynamic loading
   const amenitiesList = document.getElementById("detail-amenities-list");
@@ -1180,6 +1183,7 @@ async function handlePropertyFormSubmit(event) {
     servicios: amenities,
     whatsapp_contacto: phone,
     nombre_contacto,
+    imagenes: images,
     destacada: false,
     disponible: 'disponible'
   };
