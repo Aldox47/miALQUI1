@@ -188,7 +188,8 @@ async function loadPropertiesFromSupabase() {
         amenities: Array.isArray(p.servicios) ? p.servicios : (p.servicios ? p.servicios.split(',').map(s => s.trim()).filter(Boolean) : []),
         rating: 5.0,
         reviewsCount: 0,
-        destacada: p.destacada || false,
+        destacada: !!p.destacada,
+        es_nuevo: !!p.es_nuevo,
         disponible: p.disponible || 'disponible'
       }));
 } else {
@@ -512,10 +513,55 @@ function getFilteredProperties() {
 }
 
 // Render Properties in the Listing Grid
+// Helper to create a single Property Card element
+function createPropertyCard(prop, badgeType) {
+  const isFav = favorites.includes(prop.id);
+  const card = document.createElement("div");
+  card.className = "property-card";
+  card.id = `property-card-${prop.id}`;
+  card.dataset.id = prop.id;
+
+  let badgeHtml = '';
+  if (badgeType === 'destacado' || (badgeType === undefined && prop.destacada)) {
+    badgeHtml = `<span class="card-tag-badge badge-destacado"><i data-lucide="star"></i> Destacado</span>`;
+  } else if (badgeType === 'nuevo' || (badgeType === undefined && prop.es_nuevo)) {
+    badgeHtml = `<span class="card-tag-badge badge-nuevo"><i data-lucide="sparkles"></i> Nuevo</span>`;
+  }
+
+  const cardFallbackImg = 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80';
+  card.innerHTML = `
+    <div class="card-img-wrapper" onclick="openPropertyDetail('${prop.id}')">
+      <img class="card-img" src="${(prop.images && prop.images[0]) || cardFallbackImg}" alt="${prop.title}">
+      ${badgeHtml}
+      <span class="card-category-badge">${prop.category}</span>
+    </div>
+    <button class="card-favorite-btn ${isFav ? 'active' : ''}" onclick="toggleFavorite(event, '${prop.id}')" aria-label="Favorito">
+      <i data-lucide="heart"></i>
+    </button>
+    <div class="card-info" onclick="openPropertyDetail('${prop.id}')">
+      <div class="card-title-row">
+        <h3 class="card-title">${prop.title}</h3>
+      </div>
+      <div class="card-location">
+        <i data-lucide="map-pin"></i>
+        <span>${prop.location}</span>
+      </div>
+      <div class="card-price-row">
+        <span class="card-price"><strong>${prop.price.toLocaleString('es-PY')} Gs.</strong> <span class="card-price-unit">${prop.type === 'alquiler' ? ' / mes' : ''}</span></span>
+      </div>
+    </div>
+  `;
+
+  card.addEventListener("mouseenter", () => highlightMapMarker(prop.id, true));
+  card.addEventListener("mouseleave", () => highlightMapMarker(prop.id, false));
+
+  return card;
+}
+
+// Render Properties in the Listing Grid
 function renderProperties() {
   const grid = document.getElementById("listings-grid");
   const countSpan = document.getElementById("listings-count");
-  const activeFiltersContainer = document.getElementById("active-filters-tags");
   grid.innerHTML = "";
 
   // Apply filters
@@ -543,48 +589,76 @@ function renderProperties() {
     return;
   }
 
-  // Create Property Cards
-  filtered.forEach(prop => {
-    const isFav = favorites.includes(prop.id);
-    const card = document.createElement("div");
-    card.className = "property-card";
-    card.id = `property-card-${prop.id}`;
-    card.dataset.id = prop.id;
+  // Check if filtering is active
+  const maxLimit = currentType === "alquiler" ? 5000000 : 2000000000;
+  const hasFilters = (currentCategory !== "Todos") || (searchQuery !== "") || (maxPrice < maxLimit);
 
-    const cardFallbackImg = 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80';
-    card.innerHTML = `
-      <div class="card-img-wrapper" onclick="openPropertyDetail('${prop.id}')">
-        <img class="card-img" src="${(prop.images && prop.images[0]) || cardFallbackImg}" alt="${prop.title}">
-        <span class="card-category-badge">${prop.category}</span>
+  if (hasFilters) {
+    // Single unified list for active filter/search
+    const flatGrid = document.createElement("div");
+    flatGrid.className = "section-grid";
+    filtered.forEach(prop => {
+      flatGrid.appendChild(createPropertyCard(prop));
+    });
+    grid.appendChild(flatGrid);
+  } else {
+    // Default explore view: Divided into Destacados, Nuevos Inmuebles, and Todos
+    const featuredProps = filtered.filter(p => p.destacada);
+    const newProps = filtered.filter(p => p.es_nuevo);
+    const allProps = filtered;
+
+    // 1. Sector ⭐ Destacados (if any)
+    if (featuredProps.length > 0) {
+      const secBlock = document.createElement("div");
+      secBlock.className = "section-block";
+      secBlock.innerHTML = `
+        <div class="section-block-header">
+          <div class="section-block-title title-destacados">
+            <i data-lucide="star"></i> Destacados
+          </div>
+          <span class="section-block-count">${featuredProps.length}</span>
+        </div>
+        <div class="section-grid" id="grid-destacados"></div>
+      `;
+      const secGrid = secBlock.querySelector("#grid-destacados");
+      featuredProps.forEach(prop => secGrid.appendChild(createPropertyCard(prop, 'destacado')));
+      grid.appendChild(secBlock);
+    }
+
+    // 2. Sector ✨ Nuevos Inmuebles (if any)
+    if (newProps.length > 0) {
+      const secBlock = document.createElement("div");
+      secBlock.className = "section-block";
+      secBlock.innerHTML = `
+        <div class="section-block-header">
+          <div class="section-block-title title-nuevos">
+            <i data-lucide="sparkles"></i> Nuevos Inmuebles
+          </div>
+          <span class="section-block-count">${newProps.length}</span>
+        </div>
+        <div class="section-grid" id="grid-nuevos"></div>
+      `;
+      const secGrid = secBlock.querySelector("#grid-nuevos");
+      newProps.forEach(prop => secGrid.appendChild(createPropertyCard(prop, 'nuevo')));
+      grid.appendChild(secBlock);
+    }
+
+    // 3. Sector 🏠 Todos los Inmuebles
+    const secBlockAll = document.createElement("div");
+    secBlockAll.className = "section-block";
+    secBlockAll.innerHTML = `
+      <div class="section-block-header">
+        <div class="section-block-title">
+          <i data-lucide="home"></i> Todos los Inmuebles
+        </div>
+        <span class="section-block-count">${allProps.length}</span>
       </div>
-      <button class="card-favorite-btn ${isFav ? 'active' : ''}" onclick="toggleFavorite(event, '${prop.id}')" aria-label="Favorito">
-        <i data-lucide="heart"></i>
-      </button>
-      <div class="card-info" onclick="openPropertyDetail('${prop.id}')">
-        <div class="card-title-row">
-          <h3 class="card-title">${prop.title}</h3>
-        </div>
-        <div class="card-location">
-          <i data-lucide="map-pin"></i>
-          <span>${prop.location}</span>
-        </div>
-        <div class="card-price-row">
-          <span class="card-price"><strong>${prop.price.toLocaleString('es-PY')} Gs.</strong> <span class="card-price-unit">${prop.type === 'alquiler' ? ' / mes' : ''}</span></span>
-        </div>
-      </div>
+      <div class="section-grid" id="grid-todos"></div>
     `;
-
-    // Mouse hover events to highlight map markers
-    card.addEventListener("mouseenter", () => {
-      highlightMapMarker(prop.id, true);
-    });
-
-    card.addEventListener("mouseleave", () => {
-      highlightMapMarker(prop.id, false);
-    });
-
-    grid.appendChild(card);
-  });
+    const secGridAll = secBlockAll.querySelector("#grid-todos");
+    allProps.forEach(prop => secGridAll.appendChild(createPropertyCard(prop)));
+    grid.appendChild(secBlockAll);
+  }
 
   // Re-create icons inside cards
   lucide.createIcons();
@@ -1049,6 +1123,9 @@ function renderAdminPropertiesTable() {
       ? 'background-color: var(--primary-light); color: var(--primary); padding: 2px 6px; border-radius: 12px; font-weight: 600;' 
       : 'background-color: rgba(244, 63, 94, 0.1); color: var(--accent); padding: 2px 6px; border-radius: 12px; font-weight: 600;';
 
+    const isDestacada = !!prop.destacada;
+    const isNuevo = !!prop.es_nuevo;
+
     const adminFallbackImg = 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=200&q=80';
     const tr = document.createElement("tr");
     tr.innerHTML = `
@@ -1062,7 +1139,16 @@ function renderAdminPropertiesTable() {
         <div style="font-size: 11px; margin-top: 4px;"><span style="${typeBadgeStyle}">${prop.type === 'alquiler' ? 'Alquiler' : 'Venta'}</span></div>
       </td>
       <td>${prop.price.toLocaleString('es-PY')} Gs.${prop.type === 'alquiler' ? ' / mes' : ''}</td>
-      <td style="font-size: 12px; color: var(--text-light);">Lat: ${prop.lat.toFixed(4)}<br>Lng: ${prop.lng.toFixed(4)}</td>
+      <td>
+        <div class="admin-section-badges">
+          <button type="button" class="btn-toggle-badge ${isDestacada ? 'active-destacado' : ''}" onclick="togglePropertyFlag('${prop.id}', 'destacada')" title="Alternar Destacado">
+            <i data-lucide="star"></i> ${isDestacada ? 'Destacada' : 'No destacada'}
+          </button>
+          <button type="button" class="btn-toggle-badge ${isNuevo ? 'active-nuevo' : ''}" onclick="togglePropertyFlag('${prop.id}', 'es_nuevo')" title="Alternar Nuevo">
+            <i data-lucide="sparkles"></i> ${isNuevo ? 'Nuevo' : 'No nuevo'}
+          </button>
+        </div>
+      </td>
       <td>
         <div class="admin-table-actions">
           <button class="btn-action btn-action-edit" onclick="handleEditProperty('${prop.id}')" title="Editar"><i data-lucide="edit-2"></i></button>
@@ -1074,6 +1160,35 @@ function renderAdminPropertiesTable() {
   });
   
   lucide.createIcons();
+}
+
+// Admin toggle property flags (destacada, es_nuevo) directly from table
+async function togglePropertyFlag(id, flagName) {
+  const index = properties.findIndex(p => String(p.id) === String(id));
+  if (index === -1) return;
+
+  properties[index][flagName] = !properties[index][flagName];
+  const newVal = properties[index][flagName];
+
+  if (supabaseClient) {
+    try {
+      const updateData = {};
+      updateData[flagName] = newVal;
+      const { error } = await supabaseClient
+        .from('propiedades')
+        .update(updateData)
+        .eq('id', String(id));
+
+      if (error) {
+        console.warn(`Note: Supabase update for ${flagName}:`, error.message);
+      }
+    } catch (err) {
+      console.warn(`Exception updating ${flagName}:`, err);
+    }
+  }
+
+  savePropertiesState();
+  renderAdminPropertiesTable();
 }
 
 // Admin Map GPS picker integration
@@ -1217,6 +1332,12 @@ function handleEditProperty(id) {
   selectedImageFiles = [];
   renderImagePreviews();
 
+  // Visibility flags
+  const formDestacada = document.getElementById("form-destacada-input");
+  if (formDestacada) formDestacada.checked = !!prop.destacada;
+  const formNuevo = document.getElementById("form-nuevo-input");
+  if (formNuevo) formNuevo.checked = !!prop.es_nuevo;
+
   // Services checkboxes
   const checkboxes = document.querySelectorAll("#amenities-checkboxes-container input");
   checkboxes.forEach(cb => {
@@ -1331,6 +1452,9 @@ async function handlePropertyFormSubmit(event) {
     amenities.push(cb.value);
   });
 
+  const destacada = document.getElementById("form-destacada-input") ? document.getElementById("form-destacada-input").checked : false;
+  const es_nuevo = document.getElementById("form-nuevo-input") ? document.getElementById("form-nuevo-input").checked : false;
+
   // Build Supabase DB payload with correct column names
   const dbPayload = {
     titulo: title,
@@ -1352,7 +1476,8 @@ async function handlePropertyFormSubmit(event) {
     whatsapp_contacto: phone,
     nombre_contacto,
     imagenes: images,
-    destacada: false,
+    destacada: destacada,
+    es_nuevo: es_nuevo,
     disponible: 'disponible'
   };
   dbPayload['ba\u00f1os'] = banos; // baños with ñ
@@ -1365,7 +1490,8 @@ async function handlePropertyFormSubmit(event) {
         const updatedProp = {
           ...properties[index],
           title, category, type, price, phone, location, description, lat, lng,
-          images, amenities, nombre_contacto, ciudad, barrio, habitaciones, banos, cochera, superficie
+          images, amenities, nombre_contacto, ciudad, barrio, habitaciones, banos, cochera, superficie,
+          destacada, es_nuevo
         };
 
         if (supabaseClient) {
@@ -1410,7 +1536,8 @@ async function handlePropertyFormSubmit(event) {
         id: newId,
         title, category, type, price, phone, location, lat, lng,
         rating: 5.0, reviewsCount: 0, description, images, amenities,
-        nombre_contacto, ciudad, barrio, habitaciones, banos, cochera, superficie
+        nombre_contacto, ciudad, barrio, habitaciones, banos, cochera, superficie,
+        destacada, es_nuevo
       };
 
       properties.unshift(newProp);
@@ -1436,6 +1563,10 @@ function resetPropertyForm() {
   existingImageUrls = [];
   selectedImageFiles = [];
   renderImagePreviews();
+  const formDestacada = document.getElementById("form-destacada-input");
+  if (formDestacada) formDestacada.checked = false;
+  const formNuevo = document.getElementById("form-nuevo-input");
+  if (formNuevo) formNuevo.checked = false;
   const feedback = document.getElementById("upload-feedback");
   if (feedback) feedback.textContent = "";
   document.getElementById("form-property-id").value = "";

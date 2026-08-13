@@ -2261,3 +2261,128 @@ ul {
 .preview-item .btn-remove-img:hover {
   background-color: rgba(244, 63, 94, 1);
 }
+
+/* Section Blocks for Explore Feed (Destacados, Nuevos, Todos) */
+.section-block {
+  margin-bottom: 36px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.section-block:last-child {
+  margin-bottom: 12px;
+}
+
+.section-block-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 10px;
+}
+
+.section-block-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+}
+
+.section-block-title i {
+  width: 20px;
+  height: 20px;
+}
+
+.section-block-title.title-destacados {
+  color: #f59e0b;
+}
+
+.section-block-title.title-nuevos {
+  color: #3b82f6;
+}
+
+.section-block-count {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 12px;
+  background-color: var(--bg-secondary);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+}
+
+.section-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+/* Card Special Badges */
+.card-tag-badge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  z-index: 5;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.card-tag-badge.badge-destacado {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: #ffffff;
+}
+
+.card-tag-badge.badge-nuevo {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: #ffffff;
+}
+
+/* Admin Quick Toggles in Table */
+.admin-section-badges {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.btn-toggle-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  border: 1px solid transparent;
+  cursor: pointer;
+  background-color: var(--bg-secondary);
+  color: var(--text-light);
+  transition: all var(--transition-fast);
+}
+
+.btn-toggle-badge:hover {
+  transform: scale(1.03);
+}
+
+.btn-toggle-badge.active-destacado {
+  background-color: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+  border-color: rgba(245, 158, 11, 0.3);
+}
+
+.btn-toggle-badge.active-nuevo {
+  background-color: rgba(59, 130, 246, 0.15);
+  color: #3b82f6;
+  border-color: rgba(59, 130, 246, 0.3);
+}
