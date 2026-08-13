@@ -798,6 +798,39 @@ function closePropertyDetail() {
   selectedProperty = null;
 }
 
+// Action to view property location on map directly from detail modal
+function handleViewLocationFromDetail() {
+  if (!selectedProperty) return;
+  const propId = selectedProperty.id;
+  const propLat = selectedProperty.lat;
+  const propLng = selectedProperty.lng;
+
+  // Close modal
+  closePropertyDetail();
+
+  // If on mobile / single-pane view, switch to map
+  switchMobileView('map', propId);
+
+  // Focus and open popup on the map
+  if (mainMap && propLat != null && propLng != null && !isNaN(propLat) && !isNaN(propLng)) {
+    setTimeout(() => {
+      mainMap.invalidateSize();
+      mainMap.setView([propLat, propLng], 15, { animate: true });
+
+      // Highlight marker & open popup
+      const marker = mainMapMarkers.find(m => {
+        const latLng = m.getLatLng();
+        return Math.abs(latLng.lat - propLat) < 0.0001 && Math.abs(latLng.lng - propLng) < 0.0001;
+      });
+
+      if (marker) {
+        marker.openPopup();
+      }
+      highlightPropertyCard(propId);
+    }, 200);
+  }
+}
+
 // Detail Image Slider Navigation
 function goToSlide(index) {
   if (!selectedProperty) return;
@@ -1599,6 +1632,13 @@ document.getElementById("btn-close-detail").addEventListener("click", closePrope
   // Image detail slider arrows
   document.getElementById("btn-slide-left").addEventListener("click", () => goToSlide(currentSlideIndex - 1));
   document.getElementById("btn-slide-right").addEventListener("click", () => goToSlide(currentSlideIndex + 1));
+
+  // View Location from Detail Modal buttons
+  const btnDetailMap = document.getElementById("btn-detail-view-map");
+  if (btnDetailMap) btnDetailMap.addEventListener("click", handleViewLocationFromDetail);
+
+  const btnDetailMapInline = document.getElementById("btn-detail-view-map-inline");
+  if (btnDetailMapInline) btnDetailMapInline.addEventListener("click", handleViewLocationFromDetail);
 
   // Admin login actions
   document.getElementById("btn-open-login").addEventListener("click", openLoginModal);

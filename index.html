@@ -394,11 +394,15 @@
             <div class="detail-header-block">
               <span class="detail-category-badge" id="detail-category">Cabaña</span>
               <h1 id="detail-title">Propiedad</h1>
-              <div class="detail-location">
-                <i data-lucide="map-pin"></i>
-                <span id="detail-location-text">Coronel Oviedo</span>
+              <div class="detail-location-row">
+                <div class="detail-location">
+                  <i data-lucide="map-pin"></i>
+                  <span id="detail-location-text">Coronel Oviedo</span>
+                </div>
+                <button type="button" class="btn-detail-location-inline" id="btn-detail-view-map-inline" title="Ver en el mapa">
+                  <i data-lucide="map"></i> Ver en mapa
+                </button>
               </div>
-
             </div>
 
             <div class="detail-section">
@@ -428,9 +432,14 @@
                 </div>
               </div>
 
-              <a href="#" target="_blank" class="btn-booking-whatsapp" id="btn-whatsapp-booking">
-                <i data-lucide="message-circle"></i> Contactar al Administrador
-              </a>
+              <div class="booking-actions-stack">
+                <a href="#" target="_blank" class="btn-booking-whatsapp" id="btn-whatsapp-booking">
+                  <i data-lucide="message-circle"></i> Contactar al Administrador
+                </a>
+                <button type="button" class="btn-detail-location-action" id="btn-detail-view-map">
+                  <i data-lucide="map-pin"></i> Ver ubicación en el mapa
+                </button>
+              </div>
             </div>
           </div>
         </div>
