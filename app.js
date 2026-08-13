@@ -7,6 +7,8 @@ let maxPrice = 5000000;
 let isAdmin = false;
 let currentTheme = "light";
 let currentType = "alquiler";
+let selectedImageFiles = [];
+let existingImageUrls = [];
 
 // Selected property for detail view & slider state
 let selectedProperty = null;
@@ -1045,6 +1047,56 @@ function initPickerMap() {
   }, 200);
 }
 
+// Image Upload Selection and Preview
+function handleImageSelection(event) {
+  const files = Array.from(event.target.files);
+  selectedImageFiles = selectedImageFiles.concat(files);
+  renderImagePreviews();
+}
+
+function removeSelectedImage(index, isExisting) {
+  if (isExisting) {
+    existingImageUrls.splice(index, 1);
+  } else {
+    selectedImageFiles.splice(index, 1);
+  }
+  renderImagePreviews();
+}
+
+function renderImagePreviews() {
+  const grid = document.getElementById("image-preview-grid");
+  grid.innerHTML = "";
+  
+  // Render existing images (URLs)
+  existingImageUrls.forEach((url, index) => {
+    const item = document.createElement("div");
+    item.className = "preview-item";
+    item.innerHTML = `
+      <img src="${url}" alt="Existing image">
+      <button type="button" class="btn-remove-img" onclick="removeSelectedImage(${index}, true)" aria-label="Remover"><i data-lucide="x"></i></button>
+    `;
+    grid.appendChild(item);
+  });
+
+  // Render new files (Files)
+  selectedImageFiles.forEach((file, index) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const item = document.createElement("div");
+      item.className = "preview-item";
+      item.innerHTML = `
+        <img src="${e.target.result}" alt="New image">
+        <button type="button" class="btn-remove-img" onclick="removeSelectedImage(${index}, false)" aria-label="Remover"><i data-lucide="x"></i></button>
+      `;
+      grid.appendChild(item);
+      lucide.createIcons();
+    };
+    reader.readAsDataURL(file);
+  });
+  
+  setTimeout(() => lucide.createIcons(), 50);
+}
+
 // Edit existing property
 function handleEditProperty(id) {
   const prop = properties.find(p => String(p.id) === String(id));
@@ -1072,10 +1124,9 @@ function handleEditProperty(id) {
   document.getElementById("form-superficie-input").value = prop.superficie || '';
 
   // Form Photos inputs
-  const imgInputs = document.querySelectorAll(".form-image-url");
-  imgInputs.forEach((input, index) => {
-    input.value = (prop.images && prop.images[index]) || "";
-  });
+  existingImageUrls = prop.images ? [...prop.images] : [];
+  selectedImageFiles = [];
+  renderImagePreviews();
 
   // Services checkboxes
   const checkboxes = document.querySelectorAll("#amenities-checkboxes-container input");
@@ -1146,13 +1197,41 @@ async function handlePropertyFormSubmit(event) {
   const cochera = parseInt(document.getElementById("form-cochera-input").value) || null;
   const superficie = parseInt(document.getElementById("form-superficie-input").value) || null;
 
-  // Compile image URLs list
-  const images = [];
-  document.querySelectorAll(".form-image-url").forEach(input => {
-    if (input.value.trim() !== "") {
-      images.push(input.value.trim());
+  // Upload new images to Supabase Storage
+  const uploadFeedback = document.getElementById("upload-feedback");
+  const uploadedImageUrls = [];
+  
+  if (selectedImageFiles.length > 0 && supabaseClient) {
+    if (uploadFeedback) uploadFeedback.textContent = "Subiendo imágenes...";
+    const submitBtn = document.getElementById("btn-submit-property");
+    if (submitBtn) submitBtn.disabled = true;
+
+    for (let i = 0; i < selectedImageFiles.length; i++) {
+      const file = selectedImageFiles[i];
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+      const filePath = `propiedades/${fileName}`;
+
+      const { data, error } = await supabaseClient.storage
+        .from('imagenes_propiedades')
+        .upload(filePath, file);
+
+      if (error) {
+        console.error("Error uploading image:", error);
+        alert(`Error al subir imagen ${file.name}: ${error.message}`);
+      } else if (data) {
+        const { data: urlData } = supabaseClient.storage
+          .from('imagenes_propiedades')
+          .getPublicUrl(filePath);
+        if (urlData) uploadedImageUrls.push(urlData.publicUrl);
+      }
     }
-  });
+    if (submitBtn) submitBtn.disabled = false;
+    if (uploadFeedback) uploadFeedback.textContent = "";
+  }
+
+  // Compile image URLs list
+  const images = [...existingImageUrls, ...uploadedImageUrls];
   if (images.length === 0) {
     images.push("https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80");
   }
@@ -1265,6 +1344,11 @@ async function handlePropertyFormSubmit(event) {
 
 function resetPropertyForm() {
   document.getElementById("property-form").reset();
+  existingImageUrls = [];
+  selectedImageFiles = [];
+  renderImagePreviews();
+  const feedback = document.getElementById("upload-feedback");
+  if (feedback) feedback.textContent = "";
   document.getElementById("form-property-id").value = "";
   document.getElementById("form-title").textContent = currentType === "alquiler" ? "Crear Nuevo Alquiler" : "Crear Nueva Venta";
   document.getElementById("form-type-input").value = currentType;
@@ -1504,6 +1588,8 @@ document.getElementById("btn-close-detail").addEventListener("click", closePrope
 
   // Property Form Submit
   document.getElementById("property-form").addEventListener("submit", handlePropertyFormSubmit);
+  const imgUploadInput = document.getElementById("form-image-upload");
+  if (imgUploadInput) imgUploadInput.addEventListener("change", handleImageSelection);
 
   // Floating view toggle action
   document.getElementById("btn-floating-toggle").addEventListener("click", toggleMapView);

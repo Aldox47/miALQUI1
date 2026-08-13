@@ -2119,3 +2119,82 @@ ul {
     padding: 6px 8px;
   }
 }
+
+/* Image Upload & Preview Styles */
+.form-image-upload-area {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: flex-start;
+  margin-bottom: 8px;
+}
+
+.btn-upload {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  padding: 8px 16px;
+  background-color: var(--bg-card);
+  border: 1px dashed var(--primary);
+  color: var(--primary);
+  border-radius: var(--border-radius-sm);
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.btn-upload:hover {
+  background-color: var(--primary-light);
+  border-style: solid;
+}
+
+.upload-feedback {
+  font-size: 13px;
+  color: var(--accent);
+  font-weight: 500;
+}
+
+.image-preview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.preview-item {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: var(--border-radius-sm);
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-body);
+}
+
+.preview-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.preview-item .btn-remove-img {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: rgba(244, 63, 94, 0.9);
+  color: white;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 12px;
+  padding: 0;
+}
+
+.preview-item .btn-remove-img:hover {
+  background-color: rgba(244, 63, 94, 1);
+}

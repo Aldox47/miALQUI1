@@ -292,13 +292,19 @@
                   </div>
 
                   <div class="form-group">
-                    <label>Selecciona las Fotos (URLs de imágenes)</label>
-                    <div class="form-image-inputs" id="image-inputs-container">
-                      <input type="url" class="form-image-url" placeholder="URL de la Foto 1 (Requerida)" required>
-                      <input type="url" class="form-image-url" placeholder="URL de la Foto 2 (Opcional)">
-                      <input type="url" class="form-image-url" placeholder="URL de la Foto 3 (Opcional)">
+                    <label>Selecciona las Fotos de la Propiedad</label>
+                    <div class="form-image-upload-area">
+                      <input type="file" id="form-image-upload" accept="image/*" multiple class="hidden">
+                      <label for="form-image-upload" class="btn-secondary-outline btn-upload">
+                        <i data-lucide="upload-cloud"></i> Elegir Archivos
+                      </label>
+                      <span class="upload-feedback" id="upload-feedback"></span>
+                      <p class="form-help-text">Sube varias fotos (JPG, PNG). El límite lo defines tú.</p>
                     </div>
-                    <p class="form-help-text">Ingresa enlaces de imágenes públicas (puedes usar Unsplash u otras webs).</p>
+                    <!-- Contenedor oculto para IDs y URLs existentes en edición -->
+                    <div id="existing-images-container" class="hidden"></div>
+                    <!-- Grilla de previsualización -->
+                    <div class="image-preview-grid" id="image-preview-grid"></div>
                   </div>
                 </div>
 
