@@ -757,25 +757,12 @@ ul {
   height: 12px;
 }
 
-/* Listings Grid */
+/* Listings Container (holds section blocks and flat grids) */
 .listings-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 16px;
-}
-
-@media (min-width: 640px) {
-  .listings-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 20px;
-  }
-}
-
-@media (min-width: 1200px) {
-  .listings-grid {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 24px;
-  }
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  width: 100%;
 }
 
 /* Listing Property Card */
@@ -2317,8 +2304,30 @@ ul {
 
 .section-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: 1fr;
   gap: 20px;
+  width: 100%;
+}
+
+@media (min-width: 600px) {
+  .section-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+}
+
+@media (min-width: 1100px) {
+  .section-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+  }
+}
+
+@media (min-width: 1600px) {
+  .section-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+  }
 }
 
 /* Card Special Badges */
