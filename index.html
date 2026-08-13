@@ -159,7 +159,7 @@
             </div>
             <div class="admin-info">
               <h3>Administrador</h3>
-              <p>admin@mialqui.com</p>
+              <p id="admin-email-display">admin@mialqui.com</p>
             </div>
           </div>
           <nav class="admin-nav">
@@ -455,14 +455,14 @@
         <form class="login-form" id="login-form">
           <div class="form-group">
             <label for="login-email">Correo Electrónico</label>
-            <input type="email" id="login-email" required placeholder="admin@mialqui.com" class="form-control">
+            <input type="email" id="login-email" required placeholder="tu-correo@ejemplo.com" class="form-control">
           </div>
           <div class="form-group">
             <label for="login-password">Contraseña</label>
             <input type="password" id="login-password" required placeholder="••••••••" class="form-control">
           </div>
           <div class="error-message hidden" id="login-error-msg">
-            Correo o contraseña incorrectos. Revisa las credenciales de administrador fijas.
+            Correo o contraseña incorrectos.
           </div>
           <button type="submit" class="btn-primary btn-block">Ingresar</button>
         </form>

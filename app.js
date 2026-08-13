@@ -5,6 +5,7 @@ let currentCategory = "Todos";
 let searchQuery = "";
 let maxPrice = 5000000;
 let isAdmin = false;
+let currentAdminUser = null;
 let currentTheme = "light";
 let currentType = "alquiler";
 let selectedImageFiles = [];
@@ -36,9 +37,7 @@ const SUPABASE_URL = "https://hgvhsdmyfsenkjebdgtr.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhndmhzZG15ZnNlbmtqZWJkZ3RyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM0NTgxNzAsImV4cCI6MjA5OTAzNDE3MH0.lF01g1DP0ezh2qWJV9PlnvjVpm7fIaGDaJgovmwBFkY";
 const supabaseClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 
-// Admin Credentials
-const ADMIN_EMAIL = "admin@mialqui.com";
-const ADMIN_PASSWORD = "oviedo2026";
+// Admin Configuration
 const ADMIN_WHATSAPP = "595981234567"; // Teléfono default (puede ser modificado o parametrizado)
 
 // Category name mapping helpers (DB uses singular, app uses plural)
@@ -120,8 +119,26 @@ async function initState() {
     favorites = [];
   }
 
-  // Load session
-  isAdmin = sessionStorage.getItem("mialqui_admin") === "true";
+  // Load Supabase auth session
+  if (supabaseClient) {
+    try {
+      const { data: { session } } = await supabaseClient.auth.getSession();
+      if (session && session.user) {
+        isAdmin = true;
+        currentAdminUser = session.user;
+      } else {
+        isAdmin = false;
+        currentAdminUser = null;
+      }
+    } catch (e) {
+      console.warn("Could not check Supabase session:", e);
+      isAdmin = false;
+      currentAdminUser = null;
+    }
+  } else {
+    isAdmin = false;
+    currentAdminUser = null;
+  }
   
   // Set initial price filter bound based on rentals
   maxPrice = 5000000;
@@ -840,27 +857,66 @@ function closeAboutModal() {
   document.getElementById("about-modal").classList.add("hidden");
 }
 
-// Admin Authenticate Login
-function handleAdminLogin(event) {
+// Admin Authenticate Login via Supabase Auth
+async function handleAdminLogin(event) {
   event.preventDefault();
-  const email = document.getElementById("login-email").value;
+  const email = document.getElementById("login-email").value.trim();
   const pass = document.getElementById("login-password").value;
   const errorMsg = document.getElementById("login-error-msg");
+  const submitBtn = event.target.querySelector("button[type='submit']");
 
-  if (email === ADMIN_EMAIL && pass === ADMIN_PASSWORD) {
-    isAdmin = true;
-    sessionStorage.setItem("mialqui_admin", "true");
-    closeLoginModal();
-    updateAuthUI();
-    showAdminDashboard();
-  } else {
+  if (!supabaseClient) {
+    errorMsg.textContent = "Error: Cliente de Supabase no inicializado.";
     errorMsg.classList.remove("hidden");
+    return;
+  }
+
+  const originalBtnText = submitBtn.innerHTML;
+  submitBtn.disabled = true;
+  submitBtn.innerHTML = "Verificando...";
+  errorMsg.classList.add("hidden");
+
+  try {
+    const { data, error } = await supabaseClient.auth.signInWithPassword({
+      email: email,
+      password: pass
+    });
+
+    if (error) {
+      console.error("Supabase auth error:", error);
+      errorMsg.textContent = "Correo o contraseña incorrectos.";
+      errorMsg.classList.remove("hidden");
+      return;
+    }
+
+    if (data && data.user) {
+      isAdmin = true;
+      currentAdminUser = data.user;
+      closeLoginModal();
+      updateAuthUI();
+      showAdminDashboard();
+    }
+  } catch (err) {
+    console.error("Login exception:", err);
+    errorMsg.textContent = "Error de conexión al autenticar.";
+    errorMsg.classList.remove("hidden");
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = originalBtnText;
   }
 }
 
-function handleAdminLogout() {
+async function handleAdminLogout() {
+  if (supabaseClient) {
+    try {
+      await supabaseClient.auth.signOut();
+    } catch (e) {
+      console.error("Error signing out:", e);
+    }
+  }
+
   isAdmin = false;
-  sessionStorage.removeItem("mialqui_admin");
+  currentAdminUser = null;
   document.getElementById("user-dropdown").classList.add("hidden");
   
   // Clear map picker marker if active
@@ -888,11 +944,15 @@ function updateAuthUI() {
   const guestGroup = document.getElementById("guest-menu-group");
   const adminGroup = document.getElementById("admin-menu-group");
   const userAvatar = document.querySelector(".user-avatar");
+  const adminEmailDisplay = document.getElementById("admin-email-display");
 
   if (isAdmin) {
     guestGroup.classList.add("hidden");
     adminGroup.classList.remove("hidden");
     userAvatar.style.backgroundColor = "var(--primary)";
+    if (adminEmailDisplay) {
+      adminEmailDisplay.textContent = (currentAdminUser && currentAdminUser.email) ? currentAdminUser.email : "Administrador";
+    }
   } else {
     guestGroup.classList.remove("hidden");
     adminGroup.classList.add("hidden");
