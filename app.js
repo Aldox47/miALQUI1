@@ -50,6 +50,23 @@ function mapCategoryFromDb(dbCategory) {
   return map[dbCategory] || dbCategory;
 }
 
+function toBooleanFlag(value) {
+  if (typeof value === 'string') {
+    return ['true', '1', 'yes', 'y', 'on'].includes(value.trim().toLowerCase());
+  }
+  if (typeof value === 'number') {
+    return value !== 0;
+  }
+  return Boolean(value);
+}
+
+function normalizePropertyFlags(property = {}) {
+  return {
+    destacada: toBooleanFlag(property.destacada ?? property.destacado ?? property.featured ?? false),
+    es_nuevo: toBooleanFlag(property.es_nuevo ?? property.nuevo ?? property.is_new ?? property.esNuevo ?? false)
+  };
+}
+
 // Init application on load
 window.addEventListener("DOMContentLoaded", async () => {
   initTheme();
@@ -166,33 +183,36 @@ async function loadPropertiesFromSupabase() {
     }
 
     if (data && data.length > 0) {
-      properties = data.map(p => ({
-        id: p.id,
-        title: p.titulo || '',
-        category: mapCategoryFromDb(p.categoria || ''),
-        type: p.tipo_operacion || 'alquiler',
-        price: Number(p.precio) || 0,
-        lat: Number(p.latitud) || -25.4450,
-        lng: Number(p.longitud) || -56.4440,
-        description: p.descripcion || '',
-        location: p.direccion || [p.barrio, p.ciudad].filter(Boolean).join(', ') || 'Coronel Oviedo',
-        phone: p.whatsapp_contacto || ADMIN_WHATSAPP,
-        nombre_contacto: p.nombre_contacto || '',
-        ciudad: p.ciudad || 'Coronel Oviedo',
-        barrio: p.barrio || '',
-        habitaciones: p.habitaciones || null,
-        banos: p['baños'] || null,
-        cochera: p.cochera || null,
-        superficie: p.superficie || null,
-        images: Array.isArray(p.imagenes) ? p.imagenes : (p.imagenes ? [p.imagenes] : []),
-        amenities: Array.isArray(p.servicios) ? p.servicios : (p.servicios ? p.servicios.split(',').map(s => s.trim()).filter(Boolean) : []),
-        rating: 5.0,
-        reviewsCount: 0,
-        destacada: !!p.destacada,
-        es_nuevo: !!p.es_nuevo,
-        disponible: p.disponible || 'disponible'
-      }));
-} else {
+      properties = data.map(p => {
+        const flags = normalizePropertyFlags(p);
+        return {
+          id: p.id,
+          title: p.titulo || '',
+          category: mapCategoryFromDb(p.categoria || ''),
+          type: p.tipo_operacion || 'alquiler',
+          price: Number(p.precio) || 0,
+          lat: Number(p.latitud) || -25.4450,
+          lng: Number(p.longitud) || -56.4440,
+          description: p.descripcion || '',
+          location: p.direccion || [p.barrio, p.ciudad].filter(Boolean).join(', ') || 'Coronel Oviedo',
+          phone: p.whatsapp_contacto || ADMIN_WHATSAPP,
+          nombre_contacto: p.nombre_contacto || '',
+          ciudad: p.ciudad || 'Coronel Oviedo',
+          barrio: p.barrio || '',
+          habitaciones: p.habitaciones || null,
+          banos: p['baños'] || null,
+          cochera: p.cochera || null,
+          superficie: p.superficie || null,
+          images: Array.isArray(p.imagenes) ? p.imagenes : (p.imagenes ? [p.imagenes] : []),
+          amenities: Array.isArray(p.servicios) ? p.servicios : (p.servicios ? p.servicios.split(',').map(s => s.trim()).filter(Boolean) : []),
+          rating: 5.0,
+          reviewsCount: 0,
+          destacada: flags.destacada,
+          es_nuevo: flags.es_nuevo,
+          disponible: p.disponible || 'disponible'
+        };
+      });
+    } else {
       // Seed database with mockData if empty
       properties = INITIAL_PROPERTIES;
       for (const prop of INITIAL_PROPERTIES) {
@@ -211,6 +231,7 @@ async function loadPropertiesFromSupabase() {
           longitud: prop.lng,
           servicios: prop.amenities || [],
           destacada: false,
+          es_nuevo: false,
           disponible: 'disponible',
           whatsapp_contacto: prop.phone || ADMIN_WHATSAPP,
           nombre_contacto: 'Administrador'
