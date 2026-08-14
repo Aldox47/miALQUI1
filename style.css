@@ -2057,27 +2057,89 @@ ul {
   }
 
   .listings-section {
-    padding: 14px 12px 80px 12px;
+    padding: 12px 10px 80px 10px;
   }
 
-  .card-img-wrapper {
-    aspect-ratio: 16 / 10;
+  .section-block {
+    margin-bottom: 24px;
+    gap: 10px;
   }
 
-  .card-info {
-    padding: 14px;
-  }
-
-  .card-title {
+  .section-block-title {
     font-size: 15px;
   }
 
+  .section-block-title i {
+    width: 16px;
+    height: 16px;
+  }
+
+  .card-img-wrapper {
+    aspect-ratio: 4 / 3;
+  }
+
+  .card-info {
+    padding: 8px 10px;
+  }
+
+  .card-title {
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.25;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    margin-bottom: 4px;
+  }
+
   .card-location {
-    font-size: 13px;
+    font-size: 10px;
+    gap: 3px;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .card-location i {
+    width: 11px;
+    height: 11px;
+  }
+
+  .card-price {
+    font-size: 11px;
   }
 
   .card-price strong {
-    font-size: 17px;
+    font-size: 13px;
+  }
+
+  .card-category-badge {
+    font-size: 9px;
+    padding: 2px 6px;
+    bottom: 6px;
+    left: 6px;
+  }
+
+  .card-tag-badge {
+    font-size: 9px;
+    padding: 2px 6px;
+    top: 6px;
+    left: 6px;
+    gap: 2px;
+  }
+
+  .card-favorite-btn {
+    top: 6px;
+    right: 6px;
+    width: 26px;
+    height: 26px;
+  }
+
+  .card-favorite-btn i {
+    width: 14px;
+    height: 14px;
   }
 
   /* Floating View Toggle Button */
@@ -2304,15 +2366,15 @@ ul {
 
 .section-grid {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 20px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
   width: 100%;
 }
 
 @media (min-width: 600px) {
   .section-grid {
     grid-template-columns: repeat(2, 1fr);
-    gap: 20px;
+    gap: 18px;
   }
 }
 
