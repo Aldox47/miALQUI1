@@ -467,14 +467,12 @@ function updateMapMarkers(filteredProps) {
     marker.bindPopup(popupContent, {
       maxWidth: 240,
       closeButton: false,
-      autoPan: false
+      autoPan: true,
+      autoPanPadding: [50, 50]
     });
 
     marker.on('click', () => {
       openPopupPropertyId = prop.id;
-      if (mainMap) {
-        mainMap.panTo([prop.lat, prop.lng], { animate: true });
-      }
       highlightPropertyCard(prop.id);
     });
 
