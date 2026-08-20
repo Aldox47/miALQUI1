@@ -1795,10 +1795,7 @@ document.getElementById("btn-close-detail").addEventListener("click", closePrope
   document.getElementById("btn-slide-left").addEventListener("click", () => goToSlide(currentSlideIndex - 1));
   document.getElementById("btn-slide-right").addEventListener("click", () => goToSlide(currentSlideIndex + 1));
 
-  // View Location from Detail Modal buttons
-  const btnDetailMap = document.getElementById("btn-detail-view-map");
-  if (btnDetailMap) btnDetailMap.addEventListener("click", handleViewLocationFromDetail);
-
+  // View Location from Detail Modal inline button
   const btnDetailMapInline = document.getElementById("btn-detail-view-map-inline");
   if (btnDetailMapInline) btnDetailMapInline.addEventListener("click", handleViewLocationFromDetail);
 
