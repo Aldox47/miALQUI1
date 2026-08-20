@@ -599,10 +599,15 @@ function renderProperties() {
   if (filtered.length === 0) {
     grid.innerHTML = `
       <div class="no-properties">
-        <i data-lucide="info" class="no-prop-icon"></i>
+        <div class="no-prop-icon-wrapper">
+          <i data-lucide="search-x"></i>
+        </div>
         <h3>No se encontraron propiedades</h3>
         <p>Intenta cambiar los filtros de búsqueda o categoría.</p>
-        <button class="btn-primary margin-top-md" onclick="resetFilters()">Limpiar Filtros</button>
+        <button class="btn-primary" onclick="resetFilters()">
+          <i data-lucide="rotate-ccw"></i>
+          <span>Limpiar Filtros</span>
+        </button>
       </div>
     `;
     lucide.createIcons();

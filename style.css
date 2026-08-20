@@ -709,6 +709,8 @@ ul {
   height: 100%;
   width: 100%;
   background-color: var(--bg-secondary);
+  position: relative;
+  z-index: 2;
 }
 
 .listings-header {
@@ -963,14 +965,15 @@ ul {
   top: 0;
   left: 0;
   visibility: hidden;
-  z-index: -1;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 0;
+  transition: opacity var(--transition-fast), visibility var(--transition-fast);
 }
 
 #map {
   width: 100%;
   height: 100%;
-  z-index: 1;
-  visibility: visible;
 }
 
 /* Customizing Leaflet Popups to match modern design */
@@ -1826,11 +1829,15 @@ ul {
 /* Toggle View State */
 .main-layout.show-map-view .listings-section {
   visibility: hidden !important;
-  pointer-events: none;
+  pointer-events: none !important;
+  opacity: 0;
+  z-index: 0 !important;
 }
 
 .main-layout.show-map-view .map-section {
   visibility: visible !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
   z-index: 10 !important;
 }
 
@@ -2457,3 +2464,54 @@ ul {
   color: #3b82f6;
   border-color: rgba(59, 130, 246, 0.3);
 }
+
+/* Empty State Component */
+.no-properties {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 48px 24px;
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-md);
+  margin: 24px auto;
+  box-shadow: var(--shadow-sm);
+  max-width: 480px;
+  width: 100%;
+}
+
+.no-prop-icon-wrapper {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background-color: var(--primary-light);
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.no-prop-icon-wrapper i,
+.no-prop-icon-wrapper svg {
+  width: 28px;
+  height: 28px;
+}
+
+.no-properties h3 {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.no-properties p {
+  font-size: 14px;
+  color: var(--text-light);
+  max-width: 320px;
+  line-height: 1.5;
+  margin-bottom: 20px;
+}
+
