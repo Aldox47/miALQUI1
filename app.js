@@ -908,32 +908,12 @@ function closePropertyDetail() {
 function handleViewLocationFromDetail() {
   if (!selectedProperty) return;
   const propId = selectedProperty.id;
-  const propLat = selectedProperty.lat;
-  const propLng = selectedProperty.lng;
 
   // Close modal
   closePropertyDetail();
 
-  // If on mobile / single-pane view, switch to map
+  // Switch view to map and focus on selected property
   switchMobileView('map', propId);
-
-  // Focus and open popup on the map
-  if (mainMap && propLat != null && propLng != null && !isNaN(propLat) && !isNaN(propLng)) {
-    setTimeout(() => {
-      centerMapOnPropertyPopup(propLat, propLng);
-
-      // Highlight marker & open popup
-      const marker = mainMapMarkers.find(m => {
-        const latLng = m.getLatLng();
-        return Math.abs(latLng.lat - propLat) < 0.0001 && Math.abs(latLng.lng - propLng) < 0.0001;
-      });
-
-      if (marker) {
-        marker.openPopup();
-      }
-      highlightPropertyCard(propId);
-    }, 200);
-  }
 }
 
 // Detail Image Slider Navigation
@@ -1683,7 +1663,15 @@ function switchMobileView(view, focusPropertyId) {
       if (focusPropertyId) {
         const focusProp = properties.find(p => String(p.id) === String(focusPropertyId));
         if (focusProp && focusProp.lat && focusProp.lng) {
-          centerMapOnPropertyPopup(focusProp.lat, focusProp.lng);
+          centerMapOnPropertyPopup(focusProp.lat, focusProp.lng, 15);
+          
+          const marker = mainMapMarkers.find(m => {
+            const latLng = m.getLatLng();
+            return Math.abs(latLng.lat - focusProp.lat) < 0.0001 && Math.abs(latLng.lng - focusProp.lng) < 0.0001;
+          });
+          if (marker) {
+            marker.openPopup();
+          }
           highlightMapMarker(focusPropertyId, true);
           return;
         }
