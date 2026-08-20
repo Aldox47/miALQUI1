@@ -834,6 +834,12 @@ function openPropertyDetail(id) {
     waButton.innerHTML = `<i data-lucide="message-circle"></i> Contactar para ${prop.type === 'alquiler' ? 'Alquilar' : 'Comprar'}`;
   }
 
+  // Dynamic Google Maps Link Generation
+  const gmapsButton = document.getElementById("btn-gmaps-booking");
+  if (gmapsButton && prop.lat != null && prop.lng != null) {
+    gmapsButton.href = `https://www.google.com/maps/search/?api=1&query=${prop.lat},${prop.lng}`;
+  }
+
   // Amenities dynamic loading
   const amenitiesList = document.getElementById("detail-amenities-list");
   amenitiesList.innerHTML = "";
