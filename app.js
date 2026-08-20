@@ -1663,7 +1663,7 @@ function switchMobileView(view, focusPropertyId) {
       if (focusPropertyId) {
         const focusProp = properties.find(p => String(p.id) === String(focusPropertyId));
         if (focusProp && focusProp.lat && focusProp.lng) {
-          centerMapOnPropertyPopup(focusProp.lat, focusProp.lng, 15);
+          mainMap.setView([focusProp.lat, focusProp.lng], 15, { animate: false });
           
           const marker = mainMapMarkers.find(m => {
             const latLng = m.getLatLng();
