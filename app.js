@@ -378,13 +378,19 @@ function renderCategories() {
   });
 }
 
-// Centers map smoothly on the selected property
+// Centers map smoothly so that the property popup card (miniatura) is dead-center in the map viewport
 function centerMapOnPropertyPopup(lat, lng, customZoom) {
   if (!mainMap || lat == null || lng == null || isNaN(lat) || isNaN(lng)) return;
   
   const currentZoom = mainMap.getZoom();
   const targetZoom = customZoom || (currentZoom < 14 ? 15 : currentZoom);
-  const targetLatLng = L.latLng(Number(lat), Number(lng));
+  
+  // Use CRS EPSG3857 to shift center 90px North (subtract 90 from Y) so the card is dead-center in viewport
+  const markerLatLng = L.latLng(Number(lat), Number(lng));
+  const point = L.CRS.EPSG3857.latLngToPoint(markerLatLng, targetZoom);
+  
+  const popupCenterPoint = L.point(point.x, point.y - 90);
+  const targetLatLng = L.CRS.EPSG3857.pointToLatLng(popupCenterPoint, targetZoom);
   
   if (currentZoom !== targetZoom) {
     mainMap.flyTo(targetLatLng, targetZoom, { duration: 0.45 });
@@ -471,8 +477,7 @@ function updateMapMarkers(filteredProps) {
     marker.bindPopup(popupContent, {
       maxWidth: 240,
       closeButton: false,
-      autoPan: true,
-      autoPanPadding: [50, 50]
+      autoPan: false // Disable Leaflet autoPan so custom centerMapOnPropertyPopup controls position
     });
 
     marker.on('click', () => {
