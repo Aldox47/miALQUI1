@@ -378,6 +378,20 @@ function renderCategories() {
   });
 }
 
+// Centers map smoothly with offset so the property popup card (miniatura) is dead-center in the viewport
+function centerMapOnPropertyPopup(lat, lng, customZoom) {
+  if (!mainMap || lat == null || lng == null || isNaN(lat) || isNaN(lng)) return;
+  const targetZoom = customZoom || Math.max(mainMap.getZoom(), 15);
+  mainMap.invalidateSize();
+  
+  // Calculate offset point so popup/miniatura is centered in the map viewport
+  const targetPoint = mainMap.project([lat, lng], targetZoom);
+  const popupCenterPoint = L.point(targetPoint.x, targetPoint.y - 90);
+  const targetLatLng = mainMap.unproject(popupCenterPoint, targetZoom);
+  
+  mainMap.setView(targetLatLng, targetZoom, { animate: true });
+}
+
 // Initialize Leaflet Main Map
 function initMainMap() {
   // Centered in Coronel Oviedo [-25.4450, -56.4440]
@@ -402,10 +416,8 @@ function initMainMap() {
       const prop = properties.find(p => Math.abs(p.lat - latLng.lat) < 0.0001 && Math.abs(p.lng - latLng.lng) < 0.0001);
       if (prop) {
         openPopupPropertyId = prop.id;
-        if (mainMap) {
-          mainMap.invalidateSize();
-          mainMap.setView([latLng.lat, latLng.lng], 15, { animate: true });
-        }
+        centerMapOnPropertyPopup(prop.lat, prop.lng);
+        highlightPropertyCard(prop.id);
       }
     }
   });
@@ -460,23 +472,18 @@ function updateMapMarkers(filteredProps) {
     marker.bindPopup(popupContent, {
       maxWidth: 240,
       closeButton: false,
-      autoPan: false // Prevent Leaflet autoPan from overriding setView
+      autoPan: true,
+      autoPanPadding: [50, 50]
     });
 
     marker.on('click', () => {
-      if (mainMap) {
-        mainMap.invalidateSize();
-        mainMap.setView([prop.lat, prop.lng], 15, { animate: true });
-      }
+      centerMapOnPropertyPopup(prop.lat, prop.lng);
     });
 
-// Highlight card list and center map when popup is opened
+    // Highlight card list and center map when popup is opened
     marker.on('popupopen', () => {
       if (mapViewTimeout) { clearTimeout(mapViewTimeout); mapViewTimeout = null; }
-      if (mainMap) {
-        mainMap.invalidateSize();
-        mainMap.setView([prop.lat, prop.lng], 15, { animate: true });
-      }
+      centerMapOnPropertyPopup(prop.lat, prop.lng);
       highlightPropertyCard(prop.id);
     });
 
@@ -720,11 +727,11 @@ function highlightMapMarker(id, highlight) {
 // Highlight property card list scroll
 function highlightPropertyCard(id) {
   document.querySelectorAll(".property-card").forEach(c => c.style.borderColor = "var(--border-color)");
-  const card = document.getElementById(`property-card-${id}`);
-  if (card) {
+  const cards = document.querySelectorAll(`[data-id="${id}"]`);
+  cards.forEach(card => {
     card.style.borderColor = "var(--primary)";
-    card.scrollIntoView({ behavior: "smooth", block: "nearest" });
-  }
+    card.scrollIntoView({ behavior: "smooth", block: "center" });
+  });
 }
 
 // Toggle Favorite State
@@ -881,9 +888,7 @@ function openPropertyDetail(id) {
   // Center map on selected property
   if (mainMap && prop && prop.lat != null && prop.lng != null && !isNaN(prop.lat) && !isNaN(prop.lng)) {
     console.log("Centering map on property:", prop.title, "at", prop.lat, prop.lng);
-    // Ensure map container size is calculated (critical for mobile)
-    mainMap.invalidateSize();
-    mainMap.setView([prop.lat, prop.lng], 15, { animate: true });
+    centerMapOnPropertyPopup(prop.lat, prop.lng);
     highlightMapMarker(prop.id, true);
   } else {
     console.warn("Cannot center map: mainMap=", !!mainMap, "prop=", prop ? prop.title : "null", "lat=", prop ? prop.lat : "N/A", "lng=", prop ? prop.lng : "N/A");
@@ -914,8 +919,7 @@ function handleViewLocationFromDetail() {
   // Focus and open popup on the map
   if (mainMap && propLat != null && propLng != null && !isNaN(propLat) && !isNaN(propLng)) {
     setTimeout(() => {
-      mainMap.invalidateSize();
-      mainMap.setView([propLat, propLng], 15, { animate: true });
+      centerMapOnPropertyPopup(propLat, propLng);
 
       // Highlight marker & open popup
       const marker = mainMapMarkers.find(m => {
@@ -1678,7 +1682,7 @@ function switchMobileView(view, focusPropertyId) {
       if (focusPropertyId) {
         const focusProp = properties.find(p => String(p.id) === String(focusPropertyId));
         if (focusProp && focusProp.lat && focusProp.lng) {
-          mainMap.setView([focusProp.lat, focusProp.lng], 15, { animate: false });
+          centerMapOnPropertyPopup(focusProp.lat, focusProp.lng);
           highlightMapMarker(focusPropertyId, true);
           return;
         }
