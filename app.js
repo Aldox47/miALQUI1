@@ -393,7 +393,11 @@ function centerMapOnPropertyPopup(lat, lng, customZoom) {
   const popupCenterPoint = L.point(point.x, point.y - 110);
   const targetLatLng = L.CRS.EPSG3857.pointToLatLng(popupCenterPoint, targetZoom);
   
-  mainMap.setView(targetLatLng, targetZoom, { animate: true });
+  if (currentZoom !== targetZoom) {
+    mainMap.flyTo(targetLatLng, targetZoom, { duration: 0.45 });
+  } else {
+    mainMap.panTo(targetLatLng, { animate: true, duration: 0.35 });
+  }
 }
 
 // Initialize Leaflet Main Map
@@ -726,8 +730,20 @@ function highlightPropertyCard(id) {
   const cards = document.querySelectorAll(`[data-id="${id}"]`);
   cards.forEach(card => {
     card.style.borderColor = "var(--primary)";
-    card.scrollIntoView({ behavior: "smooth", block: "center" });
   });
+
+  // Only scroll listings container if list view is active (never scroll when navigating the map)
+  const mainLayout = document.getElementById("main-layout");
+  if (mainLayout && !mainLayout.classList.contains("show-map-view")) {
+    const listSection = document.getElementById("listings-section");
+    const firstCard = cards[0];
+    if (listSection && firstCard) {
+      const cardRect = firstCard.getBoundingClientRect();
+      const sectionRect = listSection.getBoundingClientRect();
+      const offset = (cardRect.top - sectionRect.top) - (sectionRect.height / 2) + (cardRect.height / 2);
+      listSection.scrollBy({ top: offset, behavior: "smooth" });
+    }
+  }
 }
 
 // Toggle Favorite State
