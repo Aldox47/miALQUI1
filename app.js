@@ -381,15 +381,21 @@ function renderCategories() {
 // Centers map smoothly with offset so the property popup card (miniatura) is dead-center in the viewport
 function centerMapOnPropertyPopup(lat, lng, customZoom) {
   if (!mainMap || lat == null || lng == null || isNaN(lat) || isNaN(lng)) return;
-  const targetZoom = customZoom || Math.max(mainMap.getZoom(), 15);
-  mainMap.invalidateSize();
+  
+  const currentZoom = mainMap.getZoom();
+  const targetZoom = customZoom || (currentZoom < 14 ? 15 : currentZoom);
   
   // Calculate offset point so popup/miniatura is centered in the map viewport
+  // Popup card center is ~114px above the marker anchor
   const targetPoint = mainMap.project([lat, lng], targetZoom);
-  const popupCenterPoint = L.point(targetPoint.x, targetPoint.y - 90);
+  const popupCenterPoint = L.point(targetPoint.x, targetPoint.y - 114);
   const targetLatLng = mainMap.unproject(popupCenterPoint, targetZoom);
   
-  mainMap.setView(targetLatLng, targetZoom, { animate: true });
+  if (currentZoom !== targetZoom) {
+    mainMap.flyTo(targetLatLng, targetZoom, { duration: 0.45 });
+  } else {
+    mainMap.panTo(targetLatLng, { animate: true, duration: 0.35 });
+  }
 }
 
 // Initialize Leaflet Main Map
@@ -416,8 +422,6 @@ function initMainMap() {
       const prop = properties.find(p => Math.abs(p.lat - latLng.lat) < 0.0001 && Math.abs(p.lng - latLng.lng) < 0.0001);
       if (prop) {
         openPopupPropertyId = prop.id;
-        centerMapOnPropertyPopup(prop.lat, prop.lng);
-        highlightPropertyCard(prop.id);
       }
     }
   });
@@ -472,17 +476,18 @@ function updateMapMarkers(filteredProps) {
     marker.bindPopup(popupContent, {
       maxWidth: 240,
       closeButton: false,
-      autoPan: true,
-      autoPanPadding: [50, 50]
+      autoPan: false // Disable Leaflet autoPan so custom smooth centering controls position
     });
 
     marker.on('click', () => {
       centerMapOnPropertyPopup(prop.lat, prop.lng);
+      highlightPropertyCard(prop.id);
     });
 
     // Highlight card list and center map when popup is opened
     marker.on('popupopen', () => {
       if (mapViewTimeout) { clearTimeout(mapViewTimeout); mapViewTimeout = null; }
+      openPopupPropertyId = prop.id;
       centerMapOnPropertyPopup(prop.lat, prop.lng);
       highlightPropertyCard(prop.id);
     });
