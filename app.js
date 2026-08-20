@@ -385,17 +385,15 @@ function centerMapOnPropertyPopup(lat, lng, customZoom) {
   const currentZoom = mainMap.getZoom();
   const targetZoom = customZoom || (currentZoom < 14 ? 15 : currentZoom);
   
-  // Calculate offset point so popup/miniatura is centered in the map viewport
-  // Popup card center is ~114px above the marker anchor
-  const targetPoint = mainMap.project([lat, lng], targetZoom);
-  const popupCenterPoint = L.point(targetPoint.x, targetPoint.y - 114);
-  const targetLatLng = mainMap.unproject(popupCenterPoint, targetZoom);
+  // Use CRS EPSG3857 for deterministic projection and accurate pixel offset
+  const markerLatLng = L.latLng(Number(lat), Number(lng));
+  const point = L.CRS.EPSG3857.latLngToPoint(markerLatLng, targetZoom);
   
-  if (currentZoom !== targetZoom) {
-    mainMap.flyTo(targetLatLng, targetZoom, { duration: 0.45 });
-  } else {
-    mainMap.panTo(targetLatLng, { animate: true, duration: 0.35 });
-  }
+  // Offset by 110px upward (towards north) so the popup card (miniatura) is in the vertical center of the map
+  const popupCenterPoint = L.point(point.x, point.y - 110);
+  const targetLatLng = L.CRS.EPSG3857.pointToLatLng(popupCenterPoint, targetZoom);
+  
+  mainMap.setView(targetLatLng, targetZoom, { animate: true });
 }
 
 // Initialize Leaflet Main Map
@@ -480,13 +478,6 @@ function updateMapMarkers(filteredProps) {
     });
 
     marker.on('click', () => {
-      centerMapOnPropertyPopup(prop.lat, prop.lng);
-      highlightPropertyCard(prop.id);
-    });
-
-    // Highlight card list and center map when popup is opened
-    marker.on('popupopen', () => {
-      if (mapViewTimeout) { clearTimeout(mapViewTimeout); mapViewTimeout = null; }
       openPopupPropertyId = prop.id;
       centerMapOnPropertyPopup(prop.lat, prop.lng);
       highlightPropertyCard(prop.id);
