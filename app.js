@@ -1842,5 +1842,18 @@ document.getElementById("btn-close-detail").addEventListener("click", closePrope
 
   // Floating view toggle action
   document.getElementById("btn-floating-toggle").addEventListener("click", toggleMapView);
+
+  // Logo home click action
+  const btnLogo = document.getElementById("btn-logo");
+  if (btnLogo) {
+    btnLogo.addEventListener("click", () => {
+      hideAdminDashboard();
+      currentCategory = "Todos";
+      searchQuery = "";
+      renderCategories();
+      renderProperties();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+  }
 }
 

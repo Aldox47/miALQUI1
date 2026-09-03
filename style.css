@@ -208,6 +208,45 @@ ul {
   align-items: center;
   cursor: pointer;
   user-select: none;
+  text-decoration: none;
+  transition: transform var(--transition-fast), opacity var(--transition-fast);
+}
+
+.logo-area:hover {
+  transform: scale(1.04);
+}
+
+.logo-area:active {
+  transform: scale(0.97);
+}
+
+.logo-img {
+  height: 48px;
+  width: auto;
+  max-width: 170px;
+  object-fit: contain;
+  display: block;
+  filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.07));
+  transition: filter var(--transition-normal), transform var(--transition-fast);
+}
+
+/* Dark mode: logo turns pure white with subtle elegant drop shadow */
+body.dark-theme .logo-img {
+  filter: brightness(0) invert(1) drop-shadow(0 2px 6px rgba(255, 255, 255, 0.12));
+}
+
+.modal-brand-logo {
+  height: 52px;
+  width: auto;
+  object-fit: contain;
+  margin: 0 auto 12px auto;
+  display: block;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.08));
+  transition: filter var(--transition-normal);
+}
+
+body.dark-theme .modal-brand-logo {
+  filter: brightness(0) invert(1) drop-shadow(0 2px 6px rgba(255, 255, 255, 0.12));
 }
 
 .logo-text {
@@ -225,40 +264,6 @@ ul {
   transition: color var(--transition-normal);
   display: inline-flex;
   align-items: center;
-}
-
-.logo-house-letter {
-  width: 22px;
-  height: 22px;
-  display: inline-flex;
-  align-self: center;
-  margin: 0 1px 1px 1px;
-  stroke: var(--primary);
-  fill: none;
-  stroke-width: 2.5;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  transition: transform var(--transition-normal), stroke var(--transition-normal);
-  flex-shrink: 0;
-}
-
-/* Lucide replaces <i> with <svg>, pass through styles */
-.logo-text span > svg.logo-house-letter {
-  stroke: var(--primary);
-  fill: none;
-  stroke-width: 2.5;
-  width: 22px;
-  height: 22px;
-  display: inline-flex;
-  align-self: center;
-  margin: 0 1px 1px 1px;
-  flex-shrink: 0;
-  transition: transform var(--transition-normal);
-}
-
-.logo-area:hover .logo-house-letter,
-.logo-area:hover .logo-text span > svg.logo-house-letter {
-  transform: translateY(-2px) scale(1.1);
 }
 
 /* Publication Type Switcher (Alquileres / Ventas) */
@@ -1946,6 +1951,11 @@ ul {
     align-items: center;
   }
 
+  .logo-img {
+    height: 38px;
+    max-width: 135px;
+  }
+
   .logo-text {
     font-size: 18px;
   }
@@ -2248,6 +2258,11 @@ ul {
 }
 
 @media (max-width: 400px) {
+  .logo-img {
+    height: 32px;
+    max-width: 110px;
+  }
+
   .logo-text {
     font-size: 16px;
   }
