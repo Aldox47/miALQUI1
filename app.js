@@ -1612,8 +1612,18 @@ function toggleSearchDropdown(e) {
 }
 
 function handleSearchApply() {
-  const inputText = document.getElementById("search-input-text").value.trim();
+  const inputEl = document.getElementById("search-input-text");
+  const inputText = (inputEl ? inputEl.value : "").trim();
   const inputPrice = parseInt(document.getElementById("search-price-range").value);
+
+  // Secret admin access command
+  const normalizedText = inputText.toLowerCase();
+  if (normalizedText === "admin" || normalizedText === "/admin") {
+    if (inputEl) inputEl.value = "";
+    document.getElementById("search-dropdown").classList.add("hidden");
+    openLoginModal();
+    return;
+  }
 
   searchQuery = inputText;
   maxPrice = inputPrice;
@@ -1771,6 +1781,16 @@ function initEventListeners() {
   document.getElementById("btn-apply-search").addEventListener("click", handleSearchApply);
   document.getElementById("btn-clear-search").addEventListener("click", handleSearchClear);
 
+  const searchInputText = document.getElementById("search-input-text");
+  if (searchInputText) {
+    searchInputText.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        handleSearchApply();
+      }
+    });
+  }
+
   // Live price range display
   const priceRange = document.getElementById("search-price-range");
   priceRange.addEventListener("input", (e) => {
@@ -1794,12 +1814,25 @@ document.getElementById("btn-close-detail").addEventListener("click", closePrope
   if (btnDetailMapInline) btnDetailMapInline.addEventListener("click", handleViewLocationFromDetail);
 
   // Admin login actions
-  document.getElementById("btn-open-login").addEventListener("click", openLoginModal);
+  const btnOpenLogin = document.getElementById("btn-open-login");
+  if (btnOpenLogin) {
+    btnOpenLogin.addEventListener("click", openLoginModal);
+  }
   document.getElementById("btn-close-login").addEventListener("click", closeLoginModal);
   document.getElementById("login-modal").addEventListener("click", (e) => {
     if (e.target === document.getElementById("login-modal")) closeLoginModal();
   });
   document.getElementById("login-form").addEventListener("submit", handleAdminLogin);
+
+  // Secret URL Hash access (#admin)
+  const checkAdminHash = () => {
+    if (window.location.hash.toLowerCase() === "#admin") {
+      openLoginModal();
+      history.replaceState(null, null, window.location.pathname + window.location.search);
+    }
+  };
+  window.addEventListener("hashchange", checkAdminHash);
+  checkAdminHash();
 
   // About modal actions
   document.getElementById("btn-about").addEventListener("click", openAboutModal);
