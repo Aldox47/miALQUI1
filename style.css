@@ -1,6 +1,6 @@
 /* Design System & Root Variables - Professional Real Estate System */
 :root {
-  /* Colors - Corporate Slate & Deep Navy Palette */
+  /* Colors - Red & White Brand Identity (Light Mode) */
   --bg-primary: #ffffff;
   --bg-secondary: #f8fafc;
   --bg-card: #ffffff;
@@ -9,24 +9,24 @@
   --border-color: #e2e8f0;
   --border-color-subtle: #f1f5f9;
   --border-color-strong: #cbd5e1;
-  --text-primary: #0f172a;
-  --text-secondary: #334155;
-  --text-light: #64748b;
-  --text-muted: #94a3b8;
+  --text-primary: #111827;
+  --text-secondary: #374151;
+  --text-light: #6b7280;
+  --text-muted: #9ca3af;
   
-  /* Primary: Deep Corporate Navy (solid, prestigious, trustworthy) */
-  --primary: #0f2942;
-  --primary-hover: #091a2b;
-  --primary-light: #f0f5fa;
-  --primary-subtle: #e2ecf5;
-  --primary-border: #cbdceb;
+  /* Primary: Deep Crimson Red — brand identity color */
+  --primary: #c0152a;
+  --primary-hover: #a01122;
+  --primary-light: #fef2f2;
+  --primary-subtle: #fee2e2;
+  --primary-border: #fca5a5;
 
-  /* Accent: Controlled cobalt for active links and focus */
-  --accent: #1d4ed8;
-  --accent-hover: #1e40af;
-  --accent-subtle: #eff6ff;
+  /* Accent: Warm Red for links and focus states */
+  --accent: #dc2626;
+  --accent-hover: #b91c1c;
+  --accent-subtle: #fef2f2;
 
-  /* Semantic tones (restrained, non-neon) */
+  /* Semantic tones (functional, non-brand colors) */
   --featured-gold: #b45309;
   --featured-bg: #fef3c7;
   --new-blue: #0369a1;
@@ -47,7 +47,7 @@
   --border-radius-md: 10px;
   --border-radius-lg: 14px;
   
-  /* Architectural, subtle shadows (no exaggerated AI glows) */
+  /* Architectural, subtle shadows */
   --shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.04);
   --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.07), 0 1px 2px rgba(15, 23, 42, 0.04);
   --shadow-md: 0 4px 8px -2px rgba(15, 23, 42, 0.08), 0 2px 4px -2px rgba(15, 23, 42, 0.04);
@@ -64,44 +64,46 @@
   --transition-slow: 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Dark Theme Variables - Professional Executive Night Mode */
+/* Dark Theme Variables - Black & Red Brand Identity (Dark Mode) */
 body.dark-theme {
-  --bg-primary: #0f172a;
-  --bg-secondary: #0b1120;
-  --bg-card: #131d31;
-  --bg-surface-elevated: #18233c;
-  --bg-overlay: rgba(2, 6, 23, 0.8);
-  --border-color: #243049;
-  --border-color-subtle: #1b253b;
-  --border-color-strong: #334366;
-  --text-primary: #f8fafc;
-  --text-secondary: #cbd5e1;
-  --text-light: #94a3b8;
-  --text-muted: #64748b;
+  --bg-primary: #0d0d0d;
+  --bg-secondary: #141414;
+  --bg-card: #1a1a1a;
+  --bg-surface-elevated: #222222;
+  --bg-overlay: rgba(0, 0, 0, 0.82);
+  --border-color: #2a2a2a;
+  --border-color-subtle: #1f1f1f;
+  --border-color-strong: #3a3a3a;
+  --text-primary: #f5f5f5;
+  --text-secondary: #d1d5db;
+  --text-light: #9ca3af;
+  --text-muted: #6b7280;
   
-  --primary: #38bdf8;
-  --primary-hover: #7dd3fc;
-  --primary-light: rgba(56, 189, 248, 0.12);
-  --primary-subtle: rgba(56, 189, 248, 0.08);
-  --primary-border: rgba(56, 189, 248, 0.25);
+  /* Primary Red — vibrant but controlled in dark context */
+  --primary: #e8192c;
+  --primary-hover: #ff2d42;
+  --primary-light: rgba(220, 38, 38, 0.14);
+  --primary-subtle: rgba(220, 38, 38, 0.08);
+  --primary-border: rgba(220, 38, 38, 0.3);
 
-  --accent: #60a5fa;
-  --accent-hover: #93c5fd;
-  --accent-subtle: rgba(96, 165, 250, 0.12);
+  /* Accent: slightly brighter red for links/focus on dark */
+  --accent: #f87171;
+  --accent-hover: #fca5a5;
+  --accent-subtle: rgba(248, 113, 113, 0.12);
 
   --featured-gold: #f59e0b;
   --featured-bg: rgba(245, 158, 11, 0.15);
   --new-blue: #38bdf8;
-  --new-bg: rgba(56, 189, 248, 0.15);
-  --danger-bg: rgba(220, 38, 38, 0.15);
+  --new-bg: rgba(56, 189, 248, 0.12);
+  --danger-bg: rgba(220, 38, 38, 0.18);
   --whatsapp-green: #22c55e;
   --whatsapp-green-hover: #16a34a;
   
-  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.4);
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.5);
-  --shadow-md: 0 4px 8px -2px rgba(0, 0, 0, 0.6);
-  --shadow-lg: 0 10px 20px -3px rgba(0, 0, 0, 0.7);
-  --shadow-xl: 0 20px 28px -5px rgba(0, 0, 0, 0.8);
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.6);
+  --shadow-md: 0 4px 8px -2px rgba(0, 0, 0, 0.7);
+  --shadow-lg: 0 10px 20px -3px rgba(0, 0, 0, 0.8);
+  --shadow-xl: 0 20px 28px -5px rgba(0, 0, 0, 0.85);
 }
 
 /* Basic Reset */
@@ -347,8 +349,8 @@ body.dark-theme .modal-brand-logo {
 }
 
 body.dark-theme .type-btn.active {
-  background-color: var(--primary-light);
-  color: var(--primary);
+  background-color: var(--primary);
+  color: #ffffff;
 }
 
 @media (max-width: 576px) {
@@ -1226,7 +1228,7 @@ body.dark-theme .category-item.active {
   position: relative;
   width: 100%;
   aspect-ratio: 16 / 9;
-  background-color: #0b1120;
+  background-color: #111111;
   overflow: hidden;
   flex-shrink: 0;
 }
@@ -1745,8 +1747,8 @@ body.dark-theme .category-item.active {
 }
 
 body.dark-theme .admin-nav-item.active {
-  background-color: var(--primary-light);
-  color: var(--primary);
+  background-color: var(--primary);
+  color: #ffffff;
 }
 
 .admin-content {
