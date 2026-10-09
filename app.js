@@ -545,6 +545,17 @@ function createPropertyCard(prop, badgeType) {
     badgeHtml = `<span class="card-tag-badge badge-nuevo"><i data-lucide="sparkles"></i> Nuevo</span>`;
   }
 
+  // Architectural specs row (rooms, baths, surface)
+  let specsHtml = '';
+  const specs = [];
+  if (prop.habitaciones) specs.push(`<span class="card-spec-item"><i data-lucide="bed"></i> ${prop.habitaciones} hab</span>`);
+  if (prop.banos) specs.push(`<span class="card-spec-item"><i data-lucide="bath"></i> ${prop.banos} ${prop.banos === 1 ? 'baño' : 'baños'}</span>`);
+  if (prop.superficie) specs.push(`<span class="card-spec-item"><i data-lucide="maximize-2"></i> ${prop.superficie} m²</span>`);
+  else if (prop.cochera) specs.push(`<span class="card-spec-item"><i data-lucide="car"></i> ${prop.cochera} cochera</span>`);
+  if (specs.length > 0) {
+    specsHtml = `<div class="card-specs-row">${specs.join('')}</div>`;
+  }
+
   const cardFallbackImg = 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80';
   card.innerHTML = `
     <div class="card-img-wrapper" onclick="openPropertyDetail('${prop.id}')">
@@ -563,6 +574,7 @@ function createPropertyCard(prop, badgeType) {
         <i data-lucide="map-pin"></i>
         <span>${prop.location}</span>
       </div>
+      ${specsHtml}
       <div class="card-price-row">
         <span class="card-price"><strong>${prop.price.toLocaleString('es-PY')} Gs.</strong> <span class="card-price-unit">${prop.type === 'alquiler' ? ' / mes' : ''}</span></span>
       </div>
@@ -818,6 +830,25 @@ function openPropertyDetail(id) {
   document.getElementById("detail-location-text").textContent = prop.location;
   document.getElementById("detail-description-text").textContent = prop.description;
   
+  // Specs bar dynamic loading
+  const specsBar = document.getElementById("detail-specs-bar");
+  if (specsBar) {
+    const detailSpecs = [];
+    if (prop.habitaciones) detailSpecs.push(`<span class="detail-spec-pill"><i data-lucide="bed"></i> ${prop.habitaciones} Habitaciones</span>`);
+    if (prop.banos) detailSpecs.push(`<span class="detail-spec-pill"><i data-lucide="bath"></i> ${prop.banos} ${prop.banos === 1 ? 'Baño' : 'Baños'}</span>`);
+    if (prop.superficie) detailSpecs.push(`<span class="detail-spec-pill"><i data-lucide="maximize-2"></i> ${prop.superficie} m² Superficie</span>`);
+    if (prop.cochera) detailSpecs.push(`<span class="detail-spec-pill"><i data-lucide="car"></i> ${prop.cochera} Cocheras</span>`);
+    if (prop.barrio) detailSpecs.push(`<span class="detail-spec-pill"><i data-lucide="map-pin"></i> Barrio ${prop.barrio}</span>`);
+
+    if (detailSpecs.length > 0) {
+      specsBar.innerHTML = detailSpecs.join('');
+      specsBar.classList.remove("hidden");
+    } else {
+      specsBar.innerHTML = '';
+      specsBar.classList.add("hidden");
+    }
+  }
+
   const bookingPriceSpan = document.querySelector(".booking-price");
   if (bookingPriceSpan) {
     bookingPriceSpan.innerHTML = `<strong id="booking-price-value">${prop.price.toLocaleString('es-PY')} Gs.</strong>${prop.type === 'alquiler' ? ' / mes' : ''}`;
@@ -1137,8 +1168,8 @@ function renderAdminPropertiesTable() {
 
   properties.forEach(prop => {
     const typeBadgeStyle = prop.type === 'alquiler' 
-      ? 'background-color: var(--primary-light); color: var(--primary); padding: 2px 6px; border-radius: 12px; font-weight: 600;' 
-      : 'background-color: rgba(244, 63, 94, 0.1); color: var(--accent); padding: 2px 6px; border-radius: 12px; font-weight: 600;';
+      ? 'background-color: var(--primary-light); color: var(--primary); border: 1px solid var(--primary-border); padding: 2px 6px; border-radius: 4px; font-weight: 600;' 
+      : 'background-color: var(--bg-secondary); color: var(--text-secondary); border: 1px solid var(--border-color); padding: 2px 6px; border-radius: 4px; font-weight: 600;';
 
     const isDestacada = !!prop.destacada;
     const isNuevo = !!prop.es_nuevo;
