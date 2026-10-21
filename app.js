@@ -125,8 +125,11 @@ function updateThemeToggleIcon(isDark) {
 
 // State Persistence & Supabase Integration
 async function initState() {
-  // Load properties from Supabase
-  await loadPropertiesFromSupabase();
+  // Load properties and key places in parallel
+  await Promise.all([
+    loadPropertiesFromSupabase(),
+    window.KeyPlacesModule ? window.KeyPlacesModule.loadKeyPlaces() : Promise.resolve()
+  ]);
 
   // Load favorites
   const savedFavorites = localStorage.getItem("mialqui_favorites");
@@ -420,6 +423,11 @@ function initMainMap() {
   mainMap.on("popupclose", () => {
     openPopupPropertyId = null;
   });
+
+  // Initialize Key Places independent layer & floating controls
+  if (window.KeyPlacesModule) {
+    window.KeyPlacesModule.initMapLayer(mainMap);
+  }
 }
 
 // Refresh Leaflet Map Markers
@@ -1124,6 +1132,9 @@ function showAdminDashboard() {
   switchAdminView("list");
   updateHeaderAndTitles();
   renderAdminPropertiesTable();
+  if (window.KeyPlacesModule) {
+    window.KeyPlacesModule.renderAdminTable();
+  }
 }
 
 function hideAdminDashboard() {
@@ -1142,22 +1153,31 @@ function hideAdminDashboard() {
 function switchAdminView(view) {
   const listView = document.getElementById("admin-view-list");
   const formView = document.getElementById("admin-view-form");
+  const placesView = document.getElementById("admin-view-places");
+  const placeFormView = document.getElementById("admin-view-place-form");
   const btnNavList = document.getElementById("admin-nav-list");
   const btnNavNew = document.getElementById("admin-nav-new");
+  const btnNavPlaces = document.getElementById("admin-nav-places");
+
+  [listView, formView, placesView, placeFormView].forEach(el => el && el.classList.add("hidden"));
+  [btnNavList, btnNavNew, btnNavPlaces].forEach(btn => btn && btn.classList.remove("active"));
 
   if (view === "list") {
-    listView.classList.remove("hidden");
-    formView.classList.add("hidden");
-    btnNavList.classList.add("active");
-    btnNavNew.classList.remove("active");
+    if (listView) listView.classList.remove("hidden");
+    if (btnNavList) btnNavList.classList.add("active");
   } else if (view === "form") {
-    listView.classList.add("hidden");
-    formView.classList.remove("hidden");
-    btnNavList.classList.remove("active");
-    btnNavNew.classList.add("active");
+    if (formView) formView.classList.remove("hidden");
+    if (btnNavNew) btnNavNew.classList.add("active");
     
     // Clear and prepare form maps picker
     initPickerMap();
+  } else if (view === "places") {
+    if (placesView) placesView.classList.remove("hidden");
+    if (btnNavPlaces) btnNavPlaces.classList.add("active");
+    if (window.KeyPlacesModule) window.KeyPlacesModule.renderAdminTable();
+  } else if (view === "place-form") {
+    if (placeFormView) placeFormView.classList.remove("hidden");
+    if (btnNavPlaces) btnNavPlaces.classList.add("active");
   }
 }
 
@@ -1918,6 +1938,11 @@ document.getElementById("btn-close-detail").addEventListener("click", closePrope
       renderProperties();
       window.scrollTo({ top: 0, behavior: "smooth" });
     });
+  }
+
+  // Initialize Key Places Admin Events
+  if (window.KeyPlacesModule) {
+    window.KeyPlacesModule.initAdminEvents();
   }
 }
 
