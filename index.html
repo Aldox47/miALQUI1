@@ -376,9 +376,9 @@
           <div class="admin-panel-view hidden" id="admin-view-places">
             <div class="admin-content-header">
               <div>
-                <h2>Gestionar Lugares Clave</h2>
+                <h2>Gestionar Lugares Claves</h2>
                 <p class="text-muted" style="font-size: 13px; margin-top: 2px;">
-                  Puntos de interés visibles en el mapa con interruptor (Universidades, Plazas, Supermercados, etc.).
+                  Puntos de referencia con etiquetas estilo badge en el mapa (UNCA, Superseis, plazas, etc.).
                 </p>
               </div>
               <button class="btn-primary" id="btn-admin-add-place">
@@ -389,10 +389,9 @@
               <table class="admin-table">
                 <thead>
                   <tr>
-                    <th>Categoría</th>
                     <th>Nombre del Lugar</th>
-                    <th>Dirección / Referencia</th>
-                    <th>Coordenadas</th>
+                    <th>Latitud</th>
+                    <th>Longitud</th>
                     <th>Acciones</th>
                   </tr>
                 </thead>
@@ -403,7 +402,7 @@
             </div>
           </div>
 
-          <!-- Section: Create / Edit Key Place Form -->
+          <!-- Section: Create Key Place Form -->
           <div class="admin-panel-view hidden" id="admin-view-place-form">
             <div class="admin-content-header">
               <h2 id="place-form-title">Crear Nuevo Lugar Clave</h2>
@@ -414,43 +413,20 @@
               <input type="hidden" id="form-place-id">
 
               <div class="form-grid">
-                <!-- Left fields -->
+                <!-- Left field: Name -->
                 <div class="form-column">
                   <div class="form-group">
-                    <label for="form-place-name">Nombre del Lugar Clave</label>
-                    <input type="text" id="form-place-name" required placeholder="Ej. Universidad Nacional de Caaguazú (UNCA)">
-                  </div>
-
-                  <div class="form-group">
-                    <label for="form-place-category">Categoría</label>
-                    <select id="form-place-category" required>
-                      <option value="Universidad">🎓 Universidad</option>
-                      <option value="Plaza">🌳 Plaza / Parque</option>
-                      <option value="Supermercado">🛒 Supermercado</option>
-                      <option value="Salud">🏥 Hospital / Salud</option>
-                      <option value="Transporte">🚌 Terminal / Transporte</option>
-                      <option value="Colegio">📚 Colegio / Escuela</option>
-                      <option value="Comercio">🏪 Comercio / Shopping</option>
-                      <option value="Otro">📍 Otro</option>
-                    </select>
-                  </div>
-
-                  <div class="form-group">
-                    <label for="form-place-address">Dirección o Referencia</label>
-                    <input type="text" id="form-place-address" required placeholder="Ej. Campus Universitario, Barrio Santa María">
-                  </div>
-
-                  <div class="form-group">
-                    <label for="form-place-desc">Descripción Breve</label>
-                    <textarea id="form-place-desc" rows="3" placeholder="Información destacada del lugar..."></textarea>
+                    <label for="form-place-name">Nombre del Lugar</label>
+                    <input type="text" id="form-place-name" required placeholder="Ej. UNCA, Superseis, Plaza San Pedro...">
+                    <p class="form-help-text">Este nombre se mostrará en el mapa con la misma etiqueta que los precios.</p>
                   </div>
                 </div>
 
-                <!-- Right fields: Map Picker -->
+                <!-- Right field: Map Location Picker -->
                 <div class="form-column">
                   <div class="form-group">
-                    <label>Ubicación exacta en el Mapa</label>
-                    <p class="form-help-text text-accent">Haz clic en el mapa para fijar la ubicación del lugar clave.</p>
+                    <label>Ubicación en el Mapa</label>
+                    <p class="form-help-text text-accent">Haz clic en el mapa para marcar las coordenadas exactas.</p>
                     <div id="form-place-map-picker"></div>
                     <div class="form-row-2 margin-top-sm">
                       <div class="form-group">
