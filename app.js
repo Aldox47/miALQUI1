@@ -1076,7 +1076,8 @@ async function handleAdminLogout() {
 
   isAdmin = false;
   currentAdminUser = null;
-  document.getElementById("user-dropdown").classList.add("hidden");
+  const userDdLogout = document.getElementById("user-dropdown");
+  if (userDdLogout) userDdLogout.classList.add("hidden");
   
   // Clear map picker marker if active
   if (pickerMarker) {
@@ -1106,16 +1107,16 @@ function updateAuthUI() {
   const adminEmailDisplay = document.getElementById("admin-email-display");
 
   if (isAdmin) {
-    guestGroup.classList.add("hidden");
-    adminGroup.classList.remove("hidden");
-    userAvatar.style.backgroundColor = "var(--primary)";
+    if (guestGroup) guestGroup.classList.add("hidden");
+    if (adminGroup) adminGroup.classList.remove("hidden");
+    if (userAvatar) userAvatar.style.backgroundColor = "var(--primary)";
     if (adminEmailDisplay) {
       adminEmailDisplay.textContent = (currentAdminUser && currentAdminUser.email) ? currentAdminUser.email : "Administrador";
     }
   } else {
-    guestGroup.classList.remove("hidden");
-    adminGroup.classList.add("hidden");
-    userAvatar.style.backgroundColor = "var(--text-light)";
+    if (guestGroup) guestGroup.classList.remove("hidden");
+    if (adminGroup) adminGroup.classList.add("hidden");
+    if (userAvatar) userAvatar.style.backgroundColor = "var(--text-light)";
   }
 }
 
@@ -1125,7 +1126,8 @@ function showAdminDashboard() {
   document.getElementById("map-section").classList.add("hidden");
   document.getElementById("categories-bar").classList.add("hidden");
   document.getElementById("admin-section").classList.remove("hidden");
-  document.getElementById("user-dropdown").classList.add("hidden");
+  const userDd = document.getElementById("user-dropdown");
+  if (userDd) userDd.classList.add("hidden");
   document.getElementById("btn-floating-toggle").classList.add("hidden");
 
   // Show "Mis Publicaciones" view by default
@@ -1800,17 +1802,20 @@ function initEventListeners() {
     lucide.createIcons();
   });
 
-  // User menu click
-  document.getElementById("btn-user-menu").addEventListener("click", (e) => {
-    e.stopPropagation();
-    toggleUserDropdown();
-  });
+  // User menu click (if exists)
+  const btnUserMenu = document.getElementById("btn-user-menu");
+  if (btnUserMenu) {
+    btnUserMenu.addEventListener("click", (e) => {
+      e.stopPropagation();
+      toggleUserDropdown();
+    });
+  }
 
   // User menu click out closer
   document.addEventListener("click", (e) => {
     const dd = document.getElementById("user-dropdown");
     const menuBtn = document.getElementById("btn-user-menu");
-    if (!dd.classList.contains("hidden") && !dd.contains(e.target) && !menuBtn.contains(e.target)) {
+    if (dd && !dd.classList.contains("hidden") && !dd.contains(e.target) && (!menuBtn || !menuBtn.contains(e.target))) {
       dd.classList.add("hidden");
     }
 
@@ -1886,12 +1891,18 @@ document.getElementById("btn-close-detail").addEventListener("click", closePrope
   checkAdminHash();
 
   // About modal actions
-  document.getElementById("btn-about").addEventListener("click", openAboutModal);
-  document.getElementById("btn-close-about").addEventListener("click", closeAboutModal);
-  document.getElementById("btn-close-about-ok").addEventListener("click", closeAboutModal);
-  document.getElementById("about-modal").addEventListener("click", (e) => {
-    if (e.target === document.getElementById("about-modal")) closeAboutModal();
-  });
+  const btnAbout = document.getElementById("btn-about");
+  if (btnAbout) btnAbout.addEventListener("click", openAboutModal);
+  const btnCloseAbout = document.getElementById("btn-close-about");
+  if (btnCloseAbout) btnCloseAbout.addEventListener("click", closeAboutModal);
+  const btnCloseAboutOk = document.getElementById("btn-close-about-ok");
+  if (btnCloseAboutOk) btnCloseAboutOk.addEventListener("click", closeAboutModal);
+  const aboutModal = document.getElementById("about-modal");
+  if (aboutModal) {
+    aboutModal.addEventListener("click", (e) => {
+      if (e.target === aboutModal) closeAboutModal();
+    });
+  }
 
   // Admin navigation sidebar
   document.getElementById("admin-nav-list").addEventListener("click", () => {
@@ -1904,12 +1915,17 @@ document.getElementById("btn-close-detail").addEventListener("click", closePrope
   });
 
   // Back to explore buttons inside admin menu
-  document.getElementById("btn-goto-explore").addEventListener("click", () => {
-    hideAdminDashboard();
-    switchMobileView("list");
-  });
-  document.getElementById("btn-goto-admin").addEventListener("click", showAdminDashboard);
-  document.getElementById("btn-logout").addEventListener("click", handleAdminLogout);
+  const btnGotoExplore = document.getElementById("btn-goto-explore");
+  if (btnGotoExplore) {
+    btnGotoExplore.addEventListener("click", () => {
+      hideAdminDashboard();
+      switchMobileView("list");
+    });
+  }
+  const btnGotoAdmin = document.getElementById("btn-goto-admin");
+  if (btnGotoAdmin) btnGotoAdmin.addEventListener("click", showAdminDashboard);
+  const btnLogout = document.getElementById("btn-logout");
+  if (btnLogout) btnLogout.addEventListener("click", handleAdminLogout);
   
   // Dashboard shortcuts
   document.getElementById("btn-admin-add-shortcut").addEventListener("click", () => {

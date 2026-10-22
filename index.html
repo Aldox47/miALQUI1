@@ -96,28 +96,6 @@
           <i data-lucide="moon" class="dark-icon"></i>
           <i data-lucide="sun" class="light-icon hidden"></i>
         </button>
-        
-        <div class="user-menu-wrapper">
-          <button class="user-menu-btn" id="btn-user-menu">
-            <i data-lucide="menu"></i>
-            <div class="user-avatar">
-              <i data-lucide="user"></i>
-            </div>
-          </button>
-          
-          <div class="user-dropdown hidden" id="user-dropdown">
-            <div class="user-dropdown-group" id="guest-menu-group">
-              <button class="dropdown-item" id="btn-about">Acerca de MiAlqui</button>
-            </div>
-            <div class="user-dropdown-group hidden" id="admin-menu-group">
-              <div class="admin-badge">Admin Conectado</div>
-              <button class="dropdown-item font-semibold" id="btn-goto-admin">Gestionar Alquileres</button>
-              <button class="dropdown-item" id="btn-goto-explore">Volver a Explorar</button>
-              <div class="dropdown-divider"></div>
-              <button class="dropdown-item text-danger" id="btn-logout">Cerrar Sesión</button>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   </header>
@@ -172,6 +150,13 @@
             </button>
             <button class="admin-nav-item" id="admin-nav-places">
               <i data-lucide="map-pin"></i> Lugares Clave
+            </button>
+            <div style="margin: 10px 0 4px; border-top: 1px solid var(--border-color);"></div>
+            <button class="admin-nav-item" id="btn-goto-explore">
+              <i data-lucide="arrow-left"></i> Volver a Explorar
+            </button>
+            <button class="admin-nav-item text-danger" id="btn-logout">
+              <i data-lucide="log-out"></i> Cerrar Sesión
             </button>
           </nav>
         </div>
