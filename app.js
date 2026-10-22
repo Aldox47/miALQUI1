@@ -1180,6 +1180,12 @@ function switchAdminView(view) {
   } else if (view === "place-form") {
     if (placeFormView) placeFormView.classList.remove("hidden");
     if (btnNavPlaces) btnNavPlaces.classList.add("active");
+    // Initialize the mini-map picker for key place location selection
+    if (window.KeyPlacesModule) {
+      setTimeout(() => {
+        window.KeyPlacesModule.initPlacePickerMap();
+      }, 100);
+    }
   }
 }
 

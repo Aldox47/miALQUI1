@@ -1940,6 +1940,14 @@ body.dark-theme .admin-nav-item.active {
   z-index: 1;
 }
 
+/* Key Place admin map picker (mirrors form-map-picker) */
+#form-place-map-picker {
+  height: 260px;
+  border-radius: var(--border-radius-sm);
+  border: 1px solid var(--border-color);
+  z-index: 1;
+}
+
 .form-actions {
   display: flex;
   justify-content: flex-end;
