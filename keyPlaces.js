@@ -39,9 +39,10 @@ window.KeyPlacesModule = (function () {
 
     const sb = getSupabase();
     if (!sb || typeof sb.from !== "function") {
+      // Sin Supabase: usar localStorage como fallback
+      console.warn("[KeyPlaces] Supabase no disponible. Usando localStorage.");
       const savedLocal = localStorage.getItem("mialqui_key_places");
       keyPlaces = savedLocal ? JSON.parse(savedLocal) : INITIAL_KEY_PLACES;
-      saveLocal();
       return keyPlaces;
     }
 
@@ -51,35 +52,28 @@ window.KeyPlacesModule = (function () {
         .select("id, name, latitude, longitude, created_at")
         .order("created_at", { ascending: true });
 
-      if (error || !data || data.length === 0) {
+      if (error) {
+        console.error("[KeyPlaces] Error cargando desde Supabase:", error.message);
+        // Fallback a localStorage solo si Supabase devuelve error
         const savedLocal = localStorage.getItem("mialqui_key_places");
         keyPlaces = savedLocal ? JSON.parse(savedLocal) : INITIAL_KEY_PLACES;
-        saveLocal();
-
-        if (!error && (!data || data.length === 0)) {
-          for (const item of INITIAL_KEY_PLACES) {
-            await sb.from("key_places").insert([{
-              name: item.name,
-              latitude: item.latitude,
-              longitude: item.longitude
-            }]);
-          }
-        }
       } else {
-        keyPlaces = data.map(d => ({
+        // Supabase OK - usar datos de la BD (puede estar vacía)
+        keyPlaces = (data || []).map(d => ({
           id: d.id,
           name: d.name,
           latitude: Number(d.latitude),
           longitude: Number(d.longitude),
           created_at: d.created_at
         }));
+        // Sincronizar localStorage con los datos reales de la BD
         saveLocal();
+        console.log(`[KeyPlaces] ${keyPlaces.length} lugar(es) cargado(s) desde Supabase.`);
       }
     } catch (err) {
-      console.warn("Exception loading key_places from Supabase:", err);
+      console.error("[KeyPlaces] Excepción al cargar desde Supabase:", err);
       const savedLocal = localStorage.getItem("mialqui_key_places");
       keyPlaces = savedLocal ? JSON.parse(savedLocal) : INITIAL_KEY_PLACES;
-      saveLocal();
     }
 
     return keyPlaces;
@@ -312,14 +306,24 @@ window.KeyPlacesModule = (function () {
     const sb = getSupabase();
     if (sb && typeof sb.from === "function") {
       try {
-        await sb.from("key_places").delete().eq("id", id);
+        const { error } = await sb.from("key_places").delete().eq("id", id);
+        if (error) {
+          console.error("[KeyPlaces] Error eliminando de Supabase:", error.message);
+          alert(`Error al eliminar de la base de datos: ${error.message}`);
+          return;
+        }
+        // Recargar desde Supabase para sincronizar
+        await loadKeyPlaces();
       } catch (e) {
-        console.warn("Could not delete from Supabase:", e);
+        console.error("[KeyPlaces] Excepción al eliminar:", e);
+        alert(`Error inesperado al eliminar: ${e.message}`);
+        return;
       }
+    } else {
+      // Sin Supabase: eliminar solo localmente
+      keyPlaces = keyPlaces.filter(p => String(p.id) !== String(id));
+      saveLocal();
     }
-
-    keyPlaces = keyPlaces.filter(p => String(p.id) !== String(id));
-    saveLocal();
 
     renderAdminTable();
     renderMarkers();
@@ -338,32 +342,35 @@ window.KeyPlacesModule = (function () {
       return;
     }
 
-    const payload = {
-      name,
-      latitude,
-      longitude
-    };
+    const payload = { name, latitude, longitude };
 
     const sb = getSupabase();
-    let newId = "kp-" + Date.now();
+    const supabaseAvailable = sb && typeof sb.from === "function";
 
-    if (sb && typeof sb.from === "function") {
+    if (supabaseAvailable) {
+      // Guardar en Supabase (fuente de verdad)
       try {
         const { data, error } = await sb.from("key_places").insert([payload]).select();
-        if (!error && data && data[0]) {
-          newId = data[0].id;
+        if (error) {
+          console.error("[KeyPlaces] Error guardando en Supabase:", error.message);
+          alert(`Error al guardar en la base de datos: ${error.message}\n\nVerifica que la tabla 'key_places' exista en Supabase y que tengas permisos de escritura.`);
+          return; // No continuar si falla Supabase
+        }
+        if (data && data[0]) {
+          // Recargar desde Supabase para tener IDs reales
+          await loadKeyPlaces();
         }
       } catch (err) {
-        console.warn("Error inserting key_place in Supabase:", err);
+        console.error("[KeyPlaces] Excepción al guardar:", err);
+        alert(`Error inesperado al guardar: ${err.message}`);
+        return;
       }
+    } else {
+      // Sin Supabase: guardar solo en localStorage
+      console.warn("[KeyPlaces] Guardando solo en localStorage (sin Supabase).");
+      keyPlaces.push({ id: "kp-" + Date.now(), ...payload });
+      saveLocal();
     }
-
-    keyPlaces.push({
-      id: newId,
-      ...payload
-    });
-
-    saveLocal();
 
     renderAdminTable();
     renderMarkers();
