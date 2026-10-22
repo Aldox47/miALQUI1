@@ -36,6 +36,8 @@ const CATEGORIES = [
 const SUPABASE_URL = "https://hgvhsdmyfsenkjebdgtr.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhndmhzZG15ZnNlbmtqZWJkZ3RyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM0NTgxNzAsImV4cCI6MjA5OTAzNDE3MH0.lF01g1DP0ezh2qWJV9PlnvjVpm7fIaGDaJgovmwBFkY";
 const supabaseClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+// Exponer en window para que otros módulos (keyPlaces.js) puedan acceder
+window.supabaseClient = supabaseClient;
 
 // Admin Configuration
 const ADMIN_WHATSAPP = "595981234567"; // Teléfono default (puede ser modificado o parametrizado)
